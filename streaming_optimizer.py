@@ -3,7 +3,20 @@ from datetime import datetime, timedelta
 
 
 def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_g):
+    """
+    Optimizes the streaming package selection with rolling monthly and yearly subscriptions.
 
+    Parameters:
+        packages (list): List of package IDs.
+        games (list): List of game IDs.
+        game_dates (dict): Dictionary mapping game IDs to datetime objects of their start dates.
+        C_month (dict): Dictionary of monthly subscription costs for each package.
+        C_year (dict): Dictionary of yearly subscription costs for each package.
+        P_g (dict): Dictionary mapping game IDs to a list of packages that can cover each game.
+
+    Returns:
+        dict: Optimization results, including total cost and active subscriptions.
+    """
     # Filter out unavailable subscriptions
     filtered_C_month = {p: C_month[p] for p in C_month if p in packages}
     filtered_C_year = {p: C_year[p] for p in C_year if p in packages}
