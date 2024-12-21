@@ -1,3 +1,5 @@
+Griaßeich! This solution to the Check24 GenDev Challenge 2024 uses Mixed Integer Programming.
+
 ## Decision Variables
 1. **`x_i^month`** (Integer): Number of monthly subscriptions purchased for package `i`.  
 2. **`x_i^year`** (Integer): Number of yearly subscriptions purchased for package `i`.  
