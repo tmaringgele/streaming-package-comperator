@@ -67,16 +67,7 @@ def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_
             if z_year[p, d].varValue > 0:
                 results["active_yearly_subscriptions"].append({"package": p, "start_date": d})
 
+    return results
 
-
-    # Print results
-    print("Status:", results["status"])
-    print("Total Cost:", results["total_cost"])
-    print("Active Monthly Subscriptions:")
-    for sub in results["active_monthly_subscriptions"]:
-        print(f"  Package: {sub['package']}, Start Date: {sub['start_date'].strftime('%Y-%m-%d')}")
-    print("Active Yearly Subscriptions:")
-    for sub in results["active_yearly_subscriptions"]:
-        print(f"  Package: {sub['package']}, Start Date: {sub['start_date'].strftime('%Y-%m-%d')}")
 
 
