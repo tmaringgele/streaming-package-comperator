@@ -60,11 +60,11 @@ def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_
 
     for p in filtered_C_month:
         for d in start_dates:
-            if z_month[p, d].varValue > 0:
+            if z_month[p, d].varValue is not None and z_month[p, d].varValue > 0:
                 results["active_monthly_subscriptions"].append({"package": p, "start_date": d})
     for p in filtered_C_year:
         for d in start_dates:
-            if z_year[p, d].varValue > 0:
+            if z_year[p, d].varValue is not None and z_year[p, d].varValue > 0:
                 results["active_yearly_subscriptions"].append({"package": p, "start_date": d})
 
     return results
