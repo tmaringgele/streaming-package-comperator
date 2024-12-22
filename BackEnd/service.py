@@ -1,4 +1,4 @@
-import pandas as pd
+import numpy as np
 
 def load_games():
-    return pd.read_csv('data/bc_game.csv')
+    return np.genfromtxt('data/bc_game.csv', delimiter=',', dtype=None, encoding=None)

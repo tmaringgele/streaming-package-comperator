@@ -1,18 +1,16 @@
 from flask import Flask, request, jsonify
-import pandas as pd
 from service import load_games
-from streaming_optimizer import print_solver_results, preprocess_data, optimize_streaming_packages
 
 app = Flask(__name__)
 
 # Load the games data
 games_df = load_games()
 
-@app.route("/")
+@app.route("/api", methods=["GET"])
 def hello_world():
     return "Hello, World!"
 
-@app.route("/getGames", methods=["GET"])
+@app.route("/api/getGames", methods=["GET"])
 def get_games():
     name = request.args.get('name')
     start_date = request.args.get('start_date')
