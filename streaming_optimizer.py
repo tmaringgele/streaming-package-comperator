@@ -2,63 +2,123 @@ import pulp
 import pandas as pd
 from datetime import datetime, timedelta
 
+def print_solver_results(results):
+    """
+    Prints the results of the streaming package optimization in a readable format.
+
+    Parameters:
+        results (dict): A dictionary containing the optimization results. Expected keys are:
+            - "status" (str): Solver status (e.g., "Optimal", "Infeasible").
+            - "total_cost" (float): Total cost of the selected subscriptions.
+            - "active_monthly_subscriptions" (list): List of dictionaries with "package" and "start_date" for monthly subscriptions.
+            - "active_yearly_subscriptions" (list): List of dictionaries with "package" and "start_date" for yearly subscriptions.
+            - Any additional keys from the optimization output.
+
+    Returns:
+        None: Prints the formatted results to the console.
+    """
+    if results is not None:
+        # Print solver status
+        print("Solver Status:", results["status"])
+
+        # Print total cost of the solution
+        print("Total Cost of Selected Subscriptions:", results["total_cost"])
+
+        # Print details of active monthly subscriptions
+        print("\nActive Monthly Subscriptions:")
+        if results["active_monthly_subscriptions"]:
+            for sub in results["active_monthly_subscriptions"]:
+                print(f"  Package: {sub['package']}, Start Date: {sub['start_date'].strftime('%Y-%m-%d')}")
+        else:
+            print("  No active monthly subscriptions.")
+
+        # Print details of active yearly subscriptions
+        print("\nActive Yearly Subscriptions:")
+        if results["active_yearly_subscriptions"]:
+            for sub in results["active_yearly_subscriptions"]:
+                print(f"  Package: {sub['package']}, Start Date: {sub['start_date'].strftime('%Y-%m-%d')}")
+        else:
+            print("  No active yearly subscriptions.")
+    else:
+        # Handle case where no results are returned
+        print("No results returned from the optimization function.")
 
 def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_raw):
+    """
+    Preprocesses raw streaming and game data to generate optimized inputs for a solver function.
 
-    ## Preprocess data (make everthing as small as possible)
+    Parameters:
+        game_ids_of_interest (list): List of game IDs to focus on.
+        streaming_offers_raw (pd.DataFrame): Dataframe containing information on which streaming services offer which games.
+        streaming_packages_raw (pd.DataFrame): Dataframe containing streaming package pricing and details.
+        games_raw (pd.DataFrame): Dataframe containing information about games, including start times.
 
-    ### Filter packages to include only relevant ones
-    # Identify relevant package IDs from offers
+    Returns:
+        dict: A dictionary containing:
+            - "packages" (list): List of relevant streaming package IDs.
+            - "games" (list): List of game IDs with at least one streaming offer.
+            - "game_dates" (dict): Dictionary mapping game IDs to their start dates (as `date` objects).
+            - "C_month" (dict): Dictionary mapping package IDs to monthly prices (in cents).
+            - "C_year" (dict): Dictionary mapping package IDs to yearly prices (12 * monthly yearly subscription price in cents).
+            - "P_g" (dict): Dictionary mapping game IDs to the list of streaming package IDs that cover them.
+            - "games_with_no_offers" (list): List of game IDs that have no streaming offers.
+    """
+
+    ## Preprocess data (minimize the size of data for optimization)
+
+    ### Step 1: Filter relevant packages
+    # Identify package IDs that are relevant based on the offers for the selected games
     relevant_package_ids = streaming_offers_raw[streaming_offers_raw['game_id'].isin(game_ids_of_interest)]['streaming_package_id'].unique()
 
-    # Filter packages to include only relevant ones
+    # Filter streaming packages to include only those relevant to the selected games
     filtered_packages = streaming_packages_raw[streaming_packages_raw['id'].isin(relevant_package_ids)]
 
+    # Compute yearly prices based on monthly price for yearly subscription and clean the dataframe
     filtered_packages['yearly_price'] = filtered_packages['monthly_price_yearly_subscription_in_cents'] * 12
     filtered_packages = filtered_packages.drop(columns=['monthly_price_yearly_subscription_in_cents'])
 
-
+    ### Step 2: Filter relevant games and offers
+    # Filter games to include only those in the list of interest
     games = games_raw[games_raw['id'].isin(game_ids_of_interest)]
 
-    # Filter offers to include only the games of interest
+    # Filter offers to include only those for the games of interest
     filtered_offers = streaming_offers_raw[streaming_offers_raw['game_id'].isin(game_ids_of_interest)]
 
-
+    ### Step 3: Extract relevant data for the solver
     # Extract unique package IDs
     packages = filtered_packages['id'].unique().tolist()
 
-    # Create game_dates dictionary
-    games.loc[:, 'starts_at'] = pd.to_datetime(games['starts_at'])
+    # Create game_dates dictionary mapping game IDs to start dates
+    games.loc[:, 'starts_at'] = pd.to_datetime(games['starts_at'])  # Ensure dates are in datetime format
     game_dates = games.set_index('id')['starts_at'].apply(lambda x: x.date()).to_dict()
 
-
-    # Create C_month and C_year dictionaries, dropping packages with NA for the respective type
+    # Create C_month dictionary: Maps package IDs to monthly prices (only for packages with a valid monthly price)
     C_month = filtered_packages.dropna(subset=['monthly_price_cents']) \
         .set_index('id')['monthly_price_cents'].to_dict()
+
+    # Create C_year dictionary: Maps package IDs to yearly prices (only for packages with a valid yearly price)
     C_year = filtered_packages.dropna(subset=['yearly_price']) \
         .set_index('id')['yearly_price'].to_dict()
 
-
-    # Create P_g dictionary
+    # Create P_g dictionary: Maps game IDs to the list of streaming package IDs that can stream the game
     P_g = filtered_offers.groupby('game_id')['streaming_package_id'].apply(list).to_dict()
 
+    ### Step 4: Remove games with no offers
+    # Identify games from the input list that have no streaming offers
+    games_with_no_offers = [game_id for game_id in game_ids_of_interest if game_id not in P_g]
 
-    ## Remove all games with no offer
-    games_with_no_offers = []
-    for game_id in game_ids_of_interest:
-        if game_id not in P_g:
-            games_with_no_offers.append(game_id)
-
+    # Update the list of game IDs of interest to exclude those with no offers
     game_ids_of_interest = [game_id for game_id in game_ids_of_interest if game_id in P_g]
 
+    ### Step 5: Return results
     result = {
-        "packages": packages,
-        "games": game_ids_of_interest,
-        "game_dates": game_dates,
-        "C_month": C_month,
-        "C_year": C_year,
-        "P_g": P_g,
-        'games_with_no_offers': games_with_no_offers
+        "packages": packages,  # List of relevant package IDs
+        "games": game_ids_of_interest,  # Games with at least one streaming offer
+        "game_dates": game_dates,  # Mapping of game IDs to their start dates
+        "C_month": C_month,  # Monthly prices for relevant packages
+        "C_year": C_year,  # Yearly prices for relevant packages
+        "P_g": P_g,  # Mapping of games to the packages that can stream them
+        "games_with_no_offers": games_with_no_offers  # Games with no streaming offers
     }
 
     return result
