@@ -91,6 +91,8 @@
     }
 </script>
 
+
+{#if results == null}
 <div class="bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen overflow-y-auto  items-center justify-center">
 	<div class="w-full max-w-3xl rounded-lg bg-gray-50 p-4 shadow-lg relative">
 		<Typewriter delay={500} keepCursorOnFinish={1000}>
@@ -196,22 +198,6 @@
         <Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={findPackage}>Find my package</Button>
         <p class="text-center underline-offset-3 underline text-gray-600 cursor-pointer">or choose specific games</p>
 
-        {#if results}
-            <div class="mt-10">
-                <h2 class="text-xl font-semibold">Optimization Results</h2>
-                <p>Status: {results.optimization_results.status}</p>
-                <p>Total Cost: {results.optimization_results.total_cost}</p>
-                <h3 class="mt-4 text-lg font-semibold">Filtered Games</h3>
-                <ul>
-                    {#each results.filtered_games as game}
-                        <li>
-                            {game.team_home} vs {game.team_away} on {game.starts_at} - Covered by: {game.covered_by.join(', ')}
-                        </li>
-                    {/each}
-                </ul>
-            </div>
-        {/if}
-
 	</div>
 </div>
 
@@ -224,3 +210,20 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
     {displayClubNotFound}
   </Toast>
 
+
+{:else}
+<Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={() => results = null}>Go back</Button>
+<div class="mt-10">
+    <h2 class="text-xl font-semibold">Optimization Results</h2>
+    <p>Status: {results.optimization_results.status}</p>
+    <p>Total Cost: {results.optimization_results.total_cost}</p>
+    <h3 class="mt-4 text-lg font-semibold">Filtered Games</h3>
+    <ul>
+        {#each results.filtered_games as game}
+            <li>
+                {game.team_home} vs {game.team_away} on {game.starts_at} - Covered by: {game.covered_by.join(', ')}
+            </li>
+        {/each}
+    </ul>
+</div>
+{/if}
