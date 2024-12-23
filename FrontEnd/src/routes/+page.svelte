@@ -19,7 +19,7 @@
 
 	let liveValue = [10];
 	let highlightValue = [20];
-    let displayClubNotFound = false;
+    let displayClubNotFound: string | false = '';
 
 	function getLiveValueStatement(liveValue: number[]): string {
 		if (liveValue[0] <= 0) {
@@ -36,7 +36,6 @@
 	let searchQuery = '';
 	let dateRange = { from: null, to: null };
     let selectedClubs: string[] = []
-	let errorMessage = '';
 
 	let clubs = [
         'Bayern München',
@@ -49,18 +48,29 @@
         'Wacker Innsbruck'
     ]
 
+    const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
+
+    function getRandomColor() {
+        return badgeColors[Math.floor(Math.random() * badgeColors.length)];
+    }
+
 	function handleSearch() {
 		console.log('Searching for:', searchQuery, selectedTournament, dateRange);
 		// Make API call with searchQuery, selectedTournament, and dateRange
 	}
 
 	function addClub() {
-        if (clubs.includes(searchQuery)) {
+        if (clubs.includes(searchQuery) && !selectedClubs.includes(searchQuery)) {
             selectedClubs = [...selectedClubs, searchQuery];
             searchQuery = '';
             displayClubNotFound = false;
+        } else if (selectedClubs.includes(searchQuery)) {
+            displayClubNotFound = 'Club is already selected.';
+            setTimeout(() => {
+                displayClubNotFound = '';
+            }, 3000);
         } else {
-            displayClubNotFound = true;
+            displayClubNotFound = 'Club is not in our list.';
             setTimeout(() => {
                 displayClubNotFound = false;
             }, 3000);
@@ -85,14 +95,9 @@
 			Which clubs are you interested in? 🏟️
 		</h2>
 		<div class="mb-3 flex flex-wrap gap-2">
-			<Badge dismissable large>Default</Badge>
-			<Badge dismissable large color="dark">Dark</Badge>
-			<Badge dismissable large color="red">Red</Badge>
-			<Badge dismissable large color="green">Green</Badge>
-			<Badge dismissable large color="yellow">Yellow</Badge>
-			<Badge dismissable large color="indigo">Indigo</Badge>
-			<Badge dismissable large color="purple">Purple</Badge>
-			<Badge dismissable large color="pink">Pink</Badge>
+            {#each selectedClubs as club}
+                <Badge dismissable large color={getRandomColor()}>{club}</Badge>
+            {/each}
 		</div>
 		<div class="relative">
 			<Search
@@ -104,16 +109,14 @@
 			</Search>
 			{#if searchQuery}
 				<ul class="mt-2 bg-white border border-gray-300 rounded-lg shadow-lg absolute w-full z-10">
-					{#each clubs.filter(club => club.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5) as club}
+					{#each clubs.filter(club => club.toLowerCase().includes(searchQuery.toLowerCase()) && !selectedClubs.includes(club)).slice(0, 5) as club}
 						<li class="p-2 hover:bg-gray-200 cursor-pointer " on:click={() => searchQuery = club}>
 							{club}
 						</li>
 					{/each}
 				</ul>
 			{/if}
-			{#if errorMessage}
-                <p class="mt-2 text-red-500">{errorMessage}</p>
-            {/if}
+			
 		</div>
 		<div class="mt-8 flex flex-row gap-8">
 			<div class="flex flex-col gap-3 grow">
@@ -188,7 +191,7 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
       <ExclamationCircleSolid class="w-5 h-5" />
       <span class="sr-only">Warning icon</span>
     </svelte:fragment>
-    This club is not in our list.
+    {displayClubNotFound}
   </Toast>
 
 <style>
