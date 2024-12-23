@@ -6,6 +6,14 @@
     let start_date = new Date(results.start_date);
     let end_date = new Date(results.end_date);
     let games = results.games;
+
+    function calculateDependentGames(subscription, games) {
+        let coveredGames = games.filter(game =>  
+            !game.covered_by.some(pkg => pkg.id != subscription.package.id)
+        ); // ein game ist dependent von einem package, es nachdem wir das package removen es läge 0 hat
+        
+        return coveredGames.length;
+    }
 </script>
 
 <div class="flex flex-col gap-5"> 
@@ -23,6 +31,7 @@
             <span>Free 🤩</span>
         {:else}
             <span>{subscription.price / 100}€</span>{subscription.yearly == 1 ? '/ year' : '/ month'}
+            Remove this subscription and lose {calculateDependentGames(subscription, results.games)} games
         {/if}
     </div>
 {/each}
