@@ -30,14 +30,19 @@
 	}
 
 	let searchQuery = '';
-	let selectedTournament = '';
 	let dateRange = { from: null, to: null };
+    let selectedClubs: string[] = []
 
-	let tournaments = [
-		{ id: 1, name: 'Tournament A' },
-		{ id: 2, name: 'Tournament B' },
-		{ id: 3, name: 'Tournament C' }
-	];
+	let clubs = [
+        'Bayern München',
+        'FC Barcelona',
+        'Real Madrid',
+        'Paris Saint-Germain',
+        'Manchester City',
+        'Liverpool FC',
+        'Chelsea FC',
+        'Wacker Innsbruck'
+    ]
 
 	function handleSearch() {
 		console.log('Searching for:', searchQuery, selectedTournament, dateRange);
@@ -46,7 +51,7 @@
 </script>
 
 <div class="bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen overflow-y-auto  items-center justify-center">
-	<div class="w-full max-w-3xl rounded-lg bg-gray-50 p-4 shadow-lg">
+	<div class="w-full max-w-3xl rounded-lg bg-gray-50 p-4 shadow-lg relative">
 		<Typewriter delay={500} keepCursorOnFinish={1000}>
 			<h1 class="mb-4 text-center text-3xl font-semibold">Welcome! ⚽</h1>
 		</Typewriter>
@@ -71,14 +76,24 @@
 			<Badge dismissable large color="purple">Purple</Badge>
 			<Badge dismissable large color="pink">Pink</Badge>
 		</div>
-		<Search
-			placeholder="Bayern München, FC Barcelona, ..."
-			bind:value={searchQuery}
-			on:search={handleSearch}
-		>
-			<Button class="mx-3 gap-1"><PlusOutline /> Add</Button>
-		</Search>
-
+		<div class="relative">
+			<Search
+				placeholder="Bayern München, FC Barcelona, ..."
+				bind:value={searchQuery}
+				on:search={handleSearch}
+			>
+				<Button class="mx-3 gap-1"><PlusOutline /> Add</Button>
+			</Search>
+			{#if searchQuery}
+				<ul class="mt-2 bg-white border border-gray-300 rounded-lg shadow-lg absolute w-full z-10">
+					{#each clubs.filter(club => club.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5) as club}
+						<li class="p-2 hover:bg-gray-200 cursor-pointer " on:click={() => searchQuery = club}>
+							{club}
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
 		<div class="mt-8 flex flex-row gap-8">
 			<div class="flex flex-col gap-3 grow">
 				<Label class="text-md">Looking for a specific timespan?</Label>
