@@ -55,4 +55,7 @@ def add_package_coverage(filtered_games, optimization_results):
     filtered_games_with_coverage = filtered_games.copy()
     filtered_games_with_coverage['covered_by'] = filtered_games_with_coverage['id'].apply(lambda x: game_coverage[x])
 
+    # Sort the filtered games by 'starts_at' in ascending order
+    filtered_games_with_coverage = filtered_games_with_coverage.sort_values(by='starts_at')
+
     return filtered_games_with_coverage.to_dict(orient='records')
