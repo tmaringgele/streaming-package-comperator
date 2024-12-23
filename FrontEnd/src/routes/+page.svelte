@@ -96,7 +96,9 @@
 		</h2>
 		<div class="mb-3 flex flex-wrap gap-2">
             {#each selectedClubs as club}
-                <Badge dismissable large color={getRandomColor()}>{club}</Badge>
+                <Badge dismissable large color={getRandomColor()} on:close={() => {
+                    selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
+                }}>{club}</Badge>
             {/each}
 		</div>
 		<div class="relative">
