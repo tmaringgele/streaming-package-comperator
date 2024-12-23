@@ -12,7 +12,7 @@ def load_streaming_data():
     streaming_packages_raw = pd.read_csv('data/bc_streaming_package.csv')
     return streaming_offers_raw, streaming_packages_raw
 
-def add_package_coverage(filtered_games, optimization_results, streaming_offers):
+def add_package_coverage(filtered_games, optimization_results, streaming_offers, streaming_packages):
     """
     Adds package coverage information to the filtered games.
 
@@ -35,14 +35,15 @@ def add_package_coverage(filtered_games, optimization_results, streaming_offers)
     filtered_games['starts_at'] = pd.to_datetime(filtered_games['starts_at'])
 
     # Function to get live and highlights information
-    def get_live_highlights(game_id, package_id):
+    def get_live_highlights(game_id, package_id, packages):
         offer = streaming_offers[(streaming_offers['game_id'] == game_id) & (streaming_offers['streaming_package_id'] == package_id)]
         if not offer.empty:
-            return {
-                'package_id': package_id,
+            package_info = packages[packages['id'] == package_id].iloc[0].to_dict()
+            package_info.update({
                 'live': offer.iloc[0]['live'].tolist(),
                 'highlights': offer.iloc[0]['highlights'].tolist()
-            }
+            })
+            return package_info
         return None
 
     # Add monthly subscriptions to the coverage
@@ -52,7 +53,7 @@ def add_package_coverage(filtered_games, optimization_results, streaming_offers)
         end_date = start_date + timedelta(days=30)
         covered_games = filtered_games[(filtered_games['starts_at'] >= start_date) & (filtered_games['starts_at'] <= end_date)]
         for game_id in covered_games['id'].tolist():
-            coverage_info = get_live_highlights(game_id, package)
+            coverage_info = get_live_highlights(game_id, package, streaming_packages)
             if coverage_info:
                 game_coverage[game_id].append(coverage_info)
 
@@ -63,7 +64,7 @@ def add_package_coverage(filtered_games, optimization_results, streaming_offers)
         end_date = start_date + timedelta(days=365)
         covered_games = filtered_games[(filtered_games['starts_at'] >= start_date) & (filtered_games['starts_at'] <= end_date)]
         for game_id in covered_games['id'].tolist():
-            coverage_info = get_live_highlights(game_id, package)
+            coverage_info = get_live_highlights(game_id, package, streaming_packages)
             if coverage_info:
                 game_coverage[game_id].append(coverage_info)
 
@@ -75,3 +76,53 @@ def add_package_coverage(filtered_games, optimization_results, streaming_offers)
     filtered_games_with_coverage = filtered_games_with_coverage.sort_values(by='starts_at')
 
     return filtered_games_with_coverage.to_dict(orient='records')
+
+def get_subscription_details(packages_df, yearly_subscriptions, monthly_subscriptions):
+    """
+    Processes the subscription lists and returns detailed information.
+
+    Parameters:
+        packages_df (pd.DataFrame): DataFrame containing all package information.
+        yearly_subscriptions (list): List of yearly subscription dictionaries.
+        monthly_subscriptions (list): List of monthly subscription dictionaries.
+
+    Returns:
+        tuple: A tuple containing:
+            - list: List of subscription details ordered by start_date.
+            - int: Sum of all prices in the list.
+    """
+    subscription_details = []
+
+    # Process yearly subscriptions
+    for sub in yearly_subscriptions:
+        package_id = sub["package"]
+        start_date = pd.to_datetime(sub["start_date"])
+        package_row = packages_df[packages_df["id"] == package_id].iloc[0].to_dict()
+        price = package_row["monthly_price_yearly_subscription_in_cents"]
+        subscription_details.append({
+            "package": package_row,
+            "start_date": start_date,
+            "yearly": 1,
+            "price": price
+        })
+
+    # Process monthly subscriptions
+    for sub in monthly_subscriptions:
+        package_id = sub["package"]
+        start_date = pd.to_datetime(sub["start_date"])
+        package_row = packages_df[packages_df["id"] == package_id].iloc[0].to_dict()
+        price = package_row["monthly_price_cents"]
+        subscription_details.append({
+            "package": package_row,
+            "start_date": start_date,
+            "yearly": 0,
+            "price": price
+        })
+
+    # Sort the list by start_date
+    subscription_details.sort(key=lambda x: x["start_date"])
+
+    # Calculate the sum of all prices
+    total_price = sum(item["price"] for item in subscription_details)
+
+    return subscription_details, total_price

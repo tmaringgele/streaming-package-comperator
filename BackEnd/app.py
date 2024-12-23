@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
-from service import load_games, load_streaming_data, add_package_coverage
+from service import load_games, load_streaming_data, add_package_coverage, get_subscription_details
 from streaming_optimizer import preprocess_data, optimize_streaming_packages
 
 app = Flask(__name__)
@@ -75,14 +75,15 @@ def optimize_packages():
     )
 
     # Add package coverage information to the filtered games
-    filtered_games_with_coverage = add_package_coverage(filtered_games, results, streaming_offers_raw)
+    filtered_games_with_coverage = add_package_coverage(filtered_games, results, streaming_offers_raw, streaming_packages_raw)
 
+    packages, cost = get_subscription_details(streaming_packages_raw, results['active_yearly_subscriptions'], results['active_monthly_subscriptions'])
     response = {
-        "optimization_results": results,
-        "filtered_games": filtered_games_with_coverage
+        "cost": cost,
+        "packages": packages,
+        "games": filtered_games_with_coverage
     }
 
-    print(filtered_games_with_coverage)
 
     return jsonify(response)
 
