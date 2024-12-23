@@ -49,17 +49,14 @@
         }
     }
 
-    function handleSearch() {
-        console.log('Searching for:', searchQuery, selectedTournament, dateRange);
-        // Make API call with searchQuery, selectedTournament, and dateRange
-    }
+    
 
-    function addClub() {
-        if (clubs.includes(searchQuery) && !selectedClubs.includes(searchQuery)) {
-            selectedClubs = [...selectedClubs, searchQuery];
-            searchQuery = '';
+    function addClub(query: string) {
+        if (clubs.includes(query) && !selectedClubs.includes(query)) {
+            selectedClubs = [...selectedClubs, query];
+            query = '';
             displayClubNotFound = false;
-        } else if (selectedClubs.includes(searchQuery)) {
+        } else if (selectedClubs.includes(query)) {
             displayClubNotFound = 'Club is already selected.';
             setTimeout(() => {
                 displayClubNotFound = '';
@@ -120,14 +117,13 @@
             <Search
                 placeholder="Bayern München, FC Barcelona, ..."
                 bind:value={searchQuery}
-                on:search={handleSearch}
             >
-                <Button class="mx-3 gap-1" on:click={addClub}><PlusOutline /> Add</Button>
+                <Button class="mx-3 gap-1" on:click={() => addClub(searchQuery)}><PlusOutline /> Add</Button>
             </Search>
             {#if searchQuery}
                 <ul class="mt-2 bg-white border border-gray-300 rounded-lg shadow-lg absolute w-full z-10">
                     {#each clubs.filter(club => club.toLowerCase().includes(searchQuery.toLowerCase()) && !selectedClubs.includes(club)).slice(0, 5) as club}
-                        <li class="p-2 hover:bg-gray-200 cursor-pointer " on:click={() => searchQuery = club}>
+                        <li class="p-2 hover:bg-gray-200 cursor-pointer " on:click={() => addClub(club)}>
                             {club}
                         </li>
                     {/each}

@@ -13,7 +13,7 @@
 
 <p>Status: {results.solver_status}</p>
 <p>Total Cost: {results.cost / 100}€</p>
-<h2 class="text-xl font-semibold">Needed subscriptions</h2>
+<h2 class="text-xl font-semibold">Used subscriptions</h2>
 <div class="flex flex-col gap-2">
 
 {#each results.packages as subscription}
