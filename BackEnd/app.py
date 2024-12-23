@@ -37,8 +37,8 @@ def optimize_packages():
     data = request.json
     clubs = data.get('clubs', [])
     timespan = data.get('timespan', {})
-    live_value = data.get('live_value', 0)
-    highlight_value = data.get('highlight_value', 0)
+    live_value = data.get('live_value', 0) / 100
+    highlight_value = data.get('highlight_value', 0) / 100
 
     start_date = timespan.get('start_date')
     end_date = timespan.get('end_date')
@@ -60,9 +60,15 @@ def optimize_packages():
 
     # Preprocess data
     preprocessed_data = preprocess_data(
+        game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, 0, 0)
+
+    print("C_month without live:")
+    print(preprocessed_data['C_month'])
+    preprocessed_data = preprocess_data(
         game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, live_value, highlight_value)
 
-
+    print("C_month with live:")
+    print(preprocessed_data['C_month'])
 
     # Optimize streaming packages
     results = optimize_streaming_packages(

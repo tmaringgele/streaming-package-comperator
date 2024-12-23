@@ -42,8 +42,10 @@
             return 'A little bit.';
         } else if (liveValue[0] < 70) {
             return 'I do care.';
-        } else {
+        } else if (liveValue[0] < 100) {
             return 'I care A LOT! 🍿';
+        }else {
+            return 'MUST. HAVE. 🤯';
         }
     }
 

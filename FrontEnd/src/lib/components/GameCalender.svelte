@@ -37,21 +37,21 @@
 </script>
 
 {#if start_date && end_date}
-    <table class="table-auto w-full">
+    <table class="table-auto w-full border-collapse">
         <thead>
             <tr>
-                <th>Year</th>
+                <th class="border-r">Year</th>
                 {#each months as month}
-                    <th>{month}</th>
+                    <th class="border-r">{month}</th>
                 {/each}
             </tr>
         </thead>
         <tbody>
             {#each years as year}
-                <tr>
-                    <td>{year}</td>
+                <tr class="border-b">
+                    <td class="border-r">{year}</td>
                     {#each months as month, index}
-                        <td>
+                        <td class="border-r">
                             <ul>
                             {#each gamesByYearMonth[`${year}-${index}`] as game, gameIndex}
                                 <li class=" cursor-crosshair"

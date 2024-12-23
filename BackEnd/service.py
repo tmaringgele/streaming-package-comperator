@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import timedelta, datetime
 
 def load_games():
-    return pd.read_csv('data/bc_game.csv')
+    return pd.read_csv('data/games_cleaned.csv')
 
 def load_freeTV():
     return pd.read_csv('data/freeTV_packages.csv')
