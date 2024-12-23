@@ -1,4 +1,5 @@
 <script lang="ts">
+      import { slide } from 'svelte/transition';
 	import { Search, Button } from 'flowbite-svelte';
 	import { Dropdown, DropdownItem, Badge } from 'flowbite-svelte';
 	import { Datepicker, P } from 'flowbite-svelte';
@@ -7,15 +8,18 @@
 		SearchOutline,
 		CalendarEditOutline,
 		ChevronDownOutline,
-		PlusOutline
+		PlusOutline,
+        ExclamationCircleSolid
 	} from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
 	import Typewriter from 'svelte-typewriter';
 	import { Slider } from 'bits-ui';
 	import { get } from 'svelte/store';
+    import { Toast } from 'flowbite-svelte';
 
 	let liveValue = [10];
 	let highlightValue = [20];
+    let displayClubNotFound = false;
 
 	function getLiveValueStatement(liveValue: number[]): string {
 		if (liveValue[0] <= 0) {
@@ -32,6 +36,7 @@
 	let searchQuery = '';
 	let dateRange = { from: null, to: null };
     let selectedClubs: string[] = []
+	let errorMessage = '';
 
 	let clubs = [
         'Bayern München',
@@ -48,6 +53,19 @@
 		console.log('Searching for:', searchQuery, selectedTournament, dateRange);
 		// Make API call with searchQuery, selectedTournament, and dateRange
 	}
+
+	function addClub() {
+        if (clubs.includes(searchQuery)) {
+            selectedClubs = [...selectedClubs, searchQuery];
+            searchQuery = '';
+            displayClubNotFound = false;
+        } else {
+            displayClubNotFound = true;
+            setTimeout(() => {
+                displayClubNotFound = false;
+            }, 3000);
+        }
+    }
 </script>
 
 <div class="bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen overflow-y-auto  items-center justify-center">
@@ -82,7 +100,7 @@
 				bind:value={searchQuery}
 				on:search={handleSearch}
 			>
-				<Button class="mx-3 gap-1"><PlusOutline /> Add</Button>
+				<Button class="mx-3 gap-1" on:click={addClub}><PlusOutline /> Add</Button>
 			</Search>
 			{#if searchQuery}
 				<ul class="mt-2 bg-white border border-gray-300 rounded-lg shadow-lg absolute w-full z-10">
@@ -93,6 +111,9 @@
 					{/each}
 				</ul>
 			{/if}
+			{#if errorMessage}
+                <p class="mt-2 text-red-500">{errorMessage}</p>
+            {/if}
 		</div>
 		<div class="mt-8 flex flex-row gap-8">
 			<div class="flex flex-col gap-3 grow">
@@ -160,6 +181,15 @@
 
 	</div>
 </div>
+
+<Toast color="red" position="bottom-right" transition={slide} toastStatus={displayClubNotFound}
+divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 dark:bg-gray-800 gap-3">
+    <svelte:fragment slot="icon">
+      <ExclamationCircleSolid class="w-5 h-5" />
+      <span class="sr-only">Warning icon</span>
+    </svelte:fragment>
+    This club is not in our list.
+  </Toast>
 
 <style>
 	@font-face {
