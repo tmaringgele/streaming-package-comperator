@@ -143,6 +143,10 @@ def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_
     filtered_C_month = {p: C_month[p] for p in C_month if p in packages}
     filtered_C_year = {p: C_year[p] for p in C_year if p in packages}
 
+    # Increase costs by 1 to avoid multiple inclusions of free packages
+    adjusted_C_month = {p: cost + 1 for p, cost in filtered_C_month.items()}
+    adjusted_C_year = {p: cost + 1 for p, cost in filtered_C_year.items()}
+
     # Generate possible start dates for rolling subscriptions
     start_dates = sorted(set(game_dates.values()))
 
@@ -155,41 +159,45 @@ def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_
 
     # Decision variables
     z_month = {(p, d): pulp.LpVariable(f"z_month_{p}_{d.strftime('%Y-%m-%d')}", cat='Binary')
-            for p in filtered_C_month for d in start_dates}
+               for p in adjusted_C_month for d in start_dates}
     z_year = {(p, d): pulp.LpVariable(f"z_year_{p}_{d.strftime('%Y-%m-%d')}", cat='Binary')
-            for p in filtered_C_year for d in start_dates}
+              for p in adjusted_C_year for d in start_dates}
 
-    # Objective function: Minimize total cost
-    model += pulp.lpSum(filtered_C_month[p] * z_month[p, d] for p in filtered_C_month for d in start_dates) + \
-                pulp.lpSum(filtered_C_year[p] * z_year[p, d] for p in filtered_C_year for d in start_dates)
+    # Objective function: Minimize total cost (with adjusted costs)
+    model += pulp.lpSum(adjusted_C_month[p] * z_month[p, d] for p in adjusted_C_month for d in start_dates) + \
+             pulp.lpSum(adjusted_C_year[p] * z_year[p, d] for p in adjusted_C_year for d in start_dates)
 
     # Constraints
     # 1. Game coverage
     for g in games:
-        model += pulp.lpSum(z_month[p, d] for p in P_g[g] if p in filtered_C_month for d in start_dates if g in coverage_month[d]) + \
-                pulp.lpSum(z_year[p, d] for p in P_g[g] if p in filtered_C_year for d in start_dates if g in coverage_year[d]) >= 1
+        model += pulp.lpSum(z_month[p, d] for p in P_g[g] if p in adjusted_C_month for d in start_dates if g in coverage_month[d]) + \
+                 pulp.lpSum(z_year[p, d] for p in P_g[g] if p in adjusted_C_year for d in start_dates if g in coverage_year[d]) >= 1
 
     # Solve the model
     status = model.solve(pulp.PULP_CBC_CMD())
 
     # Process results
+    # Calculate the actual total cost (subtract the added cost of 1 per package activation)
+    actual_total_cost = pulp.value(model.objective) - sum(len(start_dates) for p in adjusted_C_month) - sum(len(start_dates) for p in adjusted_C_year)
+
     results = {
         "status": pulp.LpStatus[status],
-        "total_cost": pulp.value(model.objective),
+        "total_cost": actual_total_cost,
         "active_monthly_subscriptions": [],
         "active_yearly_subscriptions": []
     }
 
-    for p in filtered_C_month:
+    for p in adjusted_C_month:
         for d in start_dates:
             if z_month[p, d].varValue is not None and z_month[p, d].varValue > 0:
                 results["active_monthly_subscriptions"].append({"package": p, "start_date": d})
-    for p in filtered_C_year:
+    for p in adjusted_C_year:
         for d in start_dates:
             if z_year[p, d].varValue is not None and z_year[p, d].varValue > 0:
                 results["active_yearly_subscriptions"].append({"package": p, "start_date": d})
 
     return results
+
 
 
 
