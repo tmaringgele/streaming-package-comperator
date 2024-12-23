@@ -43,15 +43,17 @@ def print_solver_results(results):
         # Handle case where no results are returned
         print("No results returned from the optimization function.")
 
-def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_raw):
+def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, live_value, highlight_value):
     """
-    Preprocesses raw streaming and game data to generate optimized inputs for a solver function.
+    Preprocesses data for the streaming package optimization.
 
     Parameters:
-        game_ids_of_interest (list): List of game IDs to focus on.
-        streaming_offers_raw (pd.DataFrame): Dataframe containing information on which streaming services offer which games.
-        streaming_packages_raw (pd.DataFrame): Dataframe containing streaming package pricing and details.
-        games_raw (pd.DataFrame): Dataframe containing information about games, including start times.
+        game_ids_of_interest (list): List of game IDs that are of interest based on user input.
+        streaming_offers_raw (pd.DataFrame): Raw data of streaming offers.
+        streaming_packages_raw (pd.DataFrame): Raw data of streaming packages.
+        games_df (pd.DataFrame): DataFrame containing all games data.
+        live_value (int): User's preference value for live streaming.
+        highlight_value (int): User's preference value for highlights.
 
     Returns:
         dict: A dictionary containing:
@@ -63,7 +65,6 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
             - "P_g" (dict): Dictionary mapping game IDs to the list of streaming package IDs that cover them.
             - "games_with_no_offers" (list): List of game IDs that have no streaming offers.
     """
-
     ## Preprocess data (minimize the size of data for optimization)
 
     ### Step 1: Filter relevant packages
@@ -79,7 +80,7 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
 
     ### Step 2: Filter relevant games and offers
     # Filter games to include only those in the list of interest
-    games = games_raw[games_raw['id'].isin(game_ids_of_interest)]
+    games = games_df[games_df['id'].isin(game_ids_of_interest)]
 
     # Filter offers to include only those for the games of interest
     filtered_offers = streaming_offers_raw[streaming_offers_raw['game_id'].isin(game_ids_of_interest)]
@@ -87,6 +88,7 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
     ### Step 3: Extract relevant data for the solver
     # Extract unique package IDs
     packages = filtered_packages['id'].unique().tolist()
+
 
     # Create game_dates dictionary mapping game IDs to start dates
     games.loc[:, 'starts_at'] = pd.to_datetime(games['starts_at'])  # Ensure dates are in datetime format
@@ -99,6 +101,29 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
     # Create C_year dictionary: Maps package IDs to yearly prices (only for packages with a valid yearly price)
     C_year = filtered_packages.dropna(subset=['yearly_price']) \
         .set_index('id')['yearly_price'].to_dict()
+    
+    if live_value > 0:
+        ### if a game is not offered live: increase package price
+        # Get all packages that dont offer live
+        packages_no_live = filtered_offers[filtered_offers['live'] == 0]['streaming_package_id'].unique().tolist()
+        # Increase the prices of packages that dont offer live
+        for p in packages_no_live:
+            if p in C_month:
+                C_month[p] += live_value * C_month[p]
+            if p in C_year:
+                C_year[p] += live_value * C_year[p]
+                
+    if highlight_value > 0:
+        ### if a game is not offered highlight: increase package price
+        # Get all packages that dont offer highlight
+        packages_no_highlight = filtered_offers[filtered_offers['highlights'] == 0]['streaming_package_id'].unique().tolist()
+        # Increase the prices of packages that dont offer highlight
+        for p in packages_no_highlight:
+            if p in C_month:
+                C_month[p] += highlight_value * C_month[p]
+            if p in C_year:
+                C_year[p] += highlight_value * C_year[p]
+
 
     # Create P_g dictionary: Maps game IDs to the list of streaming package IDs that can stream the game
     P_g = filtered_offers.groupby('game_id')['streaming_package_id'].apply(list).to_dict()

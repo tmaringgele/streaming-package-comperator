@@ -1,9 +1,11 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 from service import load_games, load_streaming_data, add_package_coverage
 from streaming_optimizer import preprocess_data, optimize_streaming_packages
 
 app = Flask(__name__)
+CORS(app)
 
 # Load the games data
 games_df = load_games()
@@ -43,10 +45,13 @@ def optimize_packages():
 
     # Filter games based on the provided clubs and timespan
     filtered_games = games_df[
-        ((games_df['team_home'].isin(clubs)) | (games_df['team_away'].isin(clubs))) &
-        (games_df['starts_at'] >= start_date) &
-        (games_df['starts_at'] <= end_date)
+        ((games_df['team_home'].isin(clubs)) | (games_df['team_away'].isin(clubs)))
     ]
+
+    if start_date:
+        filtered_games = filtered_games[filtered_games['starts_at'] >= start_date]
+    if end_date:
+        filtered_games = filtered_games[filtered_games['starts_at'] <= end_date]
 
     game_ids_of_interest = filtered_games['id'].tolist()
 
@@ -54,7 +59,10 @@ def optimize_packages():
     streaming_offers_raw, streaming_packages_raw = load_streaming_data()
 
     # Preprocess data
-    preprocessed_data = preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df)
+    preprocessed_data = preprocess_data(
+        game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, live_value, highlight_value)
+
+
 
     # Optimize streaming packages
     results = optimize_streaming_packages(

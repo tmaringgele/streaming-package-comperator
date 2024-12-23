@@ -16,13 +16,25 @@
 	import { Slider } from 'bits-ui';
 	import { get } from 'svelte/store';
     import { Toast } from 'flowbite-svelte';
-    import all_clubs from '$lib/all_clubs.json'
+    import all_clubs from '$lib/all_clubs.json';
+    import { fetch } from 'whatwg-fetch';
 
    
 
 	let liveValue = [10];
 	let highlightValue = [20];
     let displayClubNotFound: string | false = '';
+    let searchQuery = '';
+	let dateRange = { from: null, to: null };
+    let selectedClubs: string[] = []
+    let clubs = all_clubs;
+    let results = null;
+
+    const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
+
+    function getRandomColor() {
+        return badgeColors[Math.floor(Math.random() * badgeColors.length)];
+    }
 
 	function getLiveValueStatement(liveValue: number[]): string {
 		if (liveValue[0] <= 0) {
@@ -35,19 +47,6 @@
 			return 'I care A LOT! 🍿';
 		}
 	}
-
-	let searchQuery = '';
-	let dateRange = { from: null, to: null };
-    let selectedClubs: string[] = []
-
-    let clubs = all_clubs;
-
-
-    const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
-
-    function getRandomColor() {
-        return badgeColors[Math.floor(Math.random() * badgeColors.length)];
-    }
 
 	function handleSearch() {
 		console.log('Searching for:', searchQuery, selectedTournament, dateRange);
@@ -70,6 +69,25 @@
                 displayClubNotFound = false;
             }, 3000);
         }
+    }
+
+    async function findPackage() {
+        const response = await fetch('http://127.0.0.1:5000/optimizePackages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                clubs: selectedClubs,
+                timespan: {
+                    start_date: dateRange.from,
+                    end_date: dateRange.to
+                },
+                live_value: liveValue[0],
+                highlight_value: highlightValue[0]
+            })
+        });
+        results = await response.json();
     }
 </script>
 
@@ -122,8 +140,8 @@
                
                 dateFormat={
                     {
-                        month: 'short',
                         day: 'numeric',
+                        month: 'numeric',
                         year: 'numeric'
                     }
                 }
@@ -175,9 +193,24 @@
         </div>
 		</div>
 
-        <Button class="mt-10 w-full mb-2" color="primary" size="lg">Find my package</Button>
+        <Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={findPackage}>Find my package</Button>
         <p class="text-center underline-offset-3 underline text-gray-600 cursor-pointer">or choose specific games</p>
 
+        {#if results}
+            <div class="mt-10">
+                <h2 class="text-xl font-semibold">Optimization Results</h2>
+                <p>Status: {results.optimization_results.status}</p>
+                <p>Total Cost: {results.optimization_results.total_cost}</p>
+                <h3 class="mt-4 text-lg font-semibold">Filtered Games</h3>
+                <ul>
+                    {#each results.filtered_games as game}
+                        <li>
+                            {game.team_home} vs {game.team_away} on {game.starts_at} - Covered by: {game.covered_by.join(', ')}
+                        </li>
+                    {/each}
+                </ul>
+            </div>
+        {/if}
 
 	</div>
 </div>
@@ -191,19 +224,3 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
     {displayClubNotFound}
   </Toast>
 
-<style>
-	@font-face {
-		font-family: 'Gelasio';
-		font-style: normal;
-		font-weight: 400;
-		src:
-			local('Gelasio Regular'),
-			local('Gelasio-Regular'),
-			url(https://fonts.gstatic.com/s/gelasio/v1/cIf9MaFfvUQxTTqS9C6hYQ.woff2) format('woff2');
-	}
-
-	h1,
-	h2 {
-		font-family: 'Tommy', sans-serif;
-	}
-</style>
