@@ -16,6 +16,9 @@
 	import { Slider } from 'bits-ui';
 	import { get } from 'svelte/store';
     import { Toast } from 'flowbite-svelte';
+    import all_clubs from '$lib/all_clubs.json'
+
+   
 
 	let liveValue = [10];
 	let highlightValue = [20];
@@ -37,16 +40,8 @@
 	let dateRange = { from: null, to: null };
     let selectedClubs: string[] = []
 
-	let clubs = [
-        'Bayern München',
-        'FC Barcelona',
-        'Real Madrid',
-        'Paris Saint-Germain',
-        'Manchester City',
-        'Liverpool FC',
-        'Chelsea FC',
-        'Wacker Innsbruck'
-    ]
+    let clubs = all_clubs;
+
 
     const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
 
