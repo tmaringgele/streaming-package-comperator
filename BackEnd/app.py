@@ -75,12 +75,14 @@ def optimize_packages():
     )
 
     # Add package coverage information to the filtered games
-    filtered_games_with_coverage = add_package_coverage(filtered_games, results)
+    filtered_games_with_coverage = add_package_coverage(filtered_games, results, streaming_offers_raw)
 
     response = {
         "optimization_results": results,
         "filtered_games": filtered_games_with_coverage
     }
+
+    print(filtered_games_with_coverage)
 
     return jsonify(response)
 

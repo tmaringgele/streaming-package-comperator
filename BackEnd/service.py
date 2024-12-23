@@ -12,13 +12,14 @@ def load_streaming_data():
     streaming_packages_raw = pd.read_csv('data/bc_streaming_package.csv')
     return streaming_offers_raw, streaming_packages_raw
 
-def add_package_coverage(filtered_games, optimization_results):
+def add_package_coverage(filtered_games, optimization_results, streaming_offers):
     """
     Adds package coverage information to the filtered games.
 
     Parameters:
         filtered_games (pd.DataFrame): DataFrame of filtered games.
         optimization_results (dict): Optimization results containing active subscriptions.
+        streaming_offers (pd.DataFrame): DataFrame of streaming offers.
 
     Returns:
         list: List of filtered games with additional information about which packages cover the game.
@@ -33,6 +34,17 @@ def add_package_coverage(filtered_games, optimization_results):
     # Convert 'starts_at' to datetime if it's not already
     filtered_games['starts_at'] = pd.to_datetime(filtered_games['starts_at'])
 
+    # Function to get live and highlights information
+    def get_live_highlights(game_id, package_id):
+        offer = streaming_offers[(streaming_offers['game_id'] == game_id) & (streaming_offers['streaming_package_id'] == package_id)]
+        if not offer.empty:
+            return {
+                'package_id': package_id,
+                'live': offer.iloc[0]['live'].tolist(),
+                'highlights': offer.iloc[0]['highlights'].tolist()
+            }
+        return None
+
     # Add monthly subscriptions to the coverage
     for sub in active_monthly_subscriptions:
         package = sub['package']
@@ -40,7 +52,9 @@ def add_package_coverage(filtered_games, optimization_results):
         end_date = start_date + timedelta(days=30)
         covered_games = filtered_games[(filtered_games['starts_at'] >= start_date) & (filtered_games['starts_at'] <= end_date)]
         for game_id in covered_games['id'].tolist():
-            game_coverage[game_id].append(package)
+            coverage_info = get_live_highlights(game_id, package)
+            if coverage_info:
+                game_coverage[game_id].append(coverage_info)
 
     # Add yearly subscriptions to the coverage
     for sub in active_yearly_subscriptions:
@@ -49,7 +63,9 @@ def add_package_coverage(filtered_games, optimization_results):
         end_date = start_date + timedelta(days=365)
         covered_games = filtered_games[(filtered_games['starts_at'] >= start_date) & (filtered_games['starts_at'] <= end_date)]
         for game_id in covered_games['id'].tolist():
-            game_coverage[game_id].append(package)
+            coverage_info = get_live_highlights(game_id, package)
+            if coverage_info:
+                game_coverage[game_id].append(coverage_info)
 
     # Add coverage information to the filtered games
     filtered_games_with_coverage = filtered_games.copy()
