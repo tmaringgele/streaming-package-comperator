@@ -54,21 +54,19 @@ def optimize_packages():
         filtered_games = filtered_games[filtered_games['starts_at'] <= end_date]
 
     game_ids_of_interest = filtered_games['id'].tolist()
+    init_num_games = len(game_ids_of_interest)
 
     # Load streaming offers and packages data
     streaming_offers_raw, streaming_packages_raw = load_streaming_data()
 
+    if highlight_value >= 1:
+        streaming_offers_raw = streaming_offers_raw[streaming_offers_raw['highlights'] == 1]
+
+    if live_value >= 1:
+        streaming_offers_raw = streaming_offers_raw[streaming_offers_raw['live'] == 1]
     # Preprocess data
     preprocessed_data = preprocess_data(
-        game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, 0, 0)
-
-    print("C_month without live:")
-    print(preprocessed_data['C_month'])
-    preprocessed_data = preprocess_data(
         game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, live_value, highlight_value)
-
-    print("C_month with live:")
-    print(preprocessed_data['C_month'])
 
     # Optimize streaming packages
     results = optimize_streaming_packages(
@@ -81,10 +79,15 @@ def optimize_packages():
     )
 
     # Add package coverage information to the filtered games
-    filtered_games_with_coverage, start, end = add_package_coverage(filtered_games, results, streaming_offers_raw, streaming_packages_raw.fillna('null'))
+    filtered_games_with_coverage, start, end = add_package_coverage(
+        filtered_games[filtered_games['id'].isin(preprocessed_data['games'])], 
+        results, streaming_offers_raw, streaming_packages_raw.fillna('null'))
 
     packages, cost = get_subscription_details(streaming_packages_raw.fillna('null'), results['active_yearly_subscriptions'], results['active_monthly_subscriptions'])
     response = {
+        "ignored_games": init_num_games - len(preprocessed_data['games']),
+        "live_value": live_value,
+        "highlight_value": highlight_value,
         "solver_status": results['status'],
         "start_date": start,
         "end_date": end,

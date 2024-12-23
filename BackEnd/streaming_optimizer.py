@@ -85,14 +85,12 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
     # Filter offers to include only those for the games of interest
     filtered_offers = streaming_offers_raw[streaming_offers_raw['game_id'].isin(game_ids_of_interest)]
 
-    ## if live_value >= 1: remove all offers that dont offer live
-    if live_value >= 1:
-        filtered_offers = filtered_offers[filtered_offers['live'] == 1]
-
-    ## if highlight_value >= 1: remove all packages that dont offer highlight
-    if highlight_value >= 1:
-        filtered_offers = filtered_offers[filtered_offers['highlights'] == 1]
-
+    ## if live_value >= 1: remove all packages that dont offer live
+    if live_value > 1:
+        # Get all packages that dont offer live
+        packages_no_live = filtered_offers[filtered_offers['live'] == 0]['streaming_package_id'].unique().tolist()
+        # Remove packages that dont offer live
+        filtered_packages = filtered_packages[~filtered_packages['id'].isin(packages_no_live)]
 
 
     ### Step 3: Extract relevant data for the solver
@@ -112,7 +110,7 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
     C_year = filtered_packages.dropna(subset=['yearly_price']) \
         .set_index('id')['yearly_price'].to_dict()
     
-    if live_value > 0 and live_value < 1:
+    if live_value > 0:
         ### if a game is not offered live: increase package price
         # Get all packages that dont offer live
         packages_no_live = filtered_offers[filtered_offers['live'] == 0]['streaming_package_id'].unique().tolist()
@@ -123,7 +121,7 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
             if p in C_year:
                 C_year[p] += (100 ** live_value) * 12
                 
-    if highlight_value > 0 and highlight_value < 1:
+    if highlight_value > 0:
         ### if a game is not offered highlight: increase package price
         # Get all packages that dont offer highlight
         packages_no_highlight = filtered_offers[filtered_offers['highlights'] == 0]['streaming_package_id'].unique().tolist()

@@ -23,7 +23,7 @@
 
     let liveValue = [10];
     let highlightValue = [20];
-    let displayClubNotFound: string | false = '';
+    let error: string | false = '';
     let searchQuery = '';
     let dateRange = { from: null, to: null };
     let selectedClubs: string[] = [];
@@ -57,22 +57,29 @@
         if (clubs.includes(query) && !selectedClubs.includes(query)) {
             selectedClubs = [...selectedClubs, query];
             query = '';
-            displayClubNotFound = false;
+            error = false;
         } else if (selectedClubs.includes(query)) {
-            displayClubNotFound = 'Club is already selected.';
+            error = 'Club is already selected.';
             setTimeout(() => {
-                displayClubNotFound = '';
+                error = '';
             }, 3000);
         } else {
-            displayClubNotFound = 'Club is not in our list.';
+            error = 'Club is not in our list.';
             setTimeout(() => {
-                displayClubNotFound = false;
+                error = false;
             }, 3000);
         }
     }
 
     let loading = false;
     async function findPackage() {
+        if (selectedClubs.length <= 0) {
+        error = 'Please add at least on club.';
+            setTimeout(() => {
+                error = false;
+            }, 3000);
+            return;
+        }
         showresults = true;
         loading = true;
         const response = await fetch('http://127.0.0.1:5000/optimizePackages', {
@@ -201,13 +208,13 @@
     </div>
 </div>
 
-<Toast color="red" position="bottom-right" transition={slide} toastStatus={displayClubNotFound}
+<Toast color="red" position="bottom-right" transition={slide} toastStatus={error}
 divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 dark:bg-gray-800 gap-3">
     <svelte:fragment slot="icon">
       <ExclamationCircleSolid class="w-5 h-5" />
       <span class="sr-only">Warning icon</span>
     </svelte:fragment>
-    {displayClubNotFound}
+    {error}
 </Toast>
 
 {:else}

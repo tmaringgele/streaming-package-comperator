@@ -12,7 +12,7 @@
 
 
 <p>Status: {results.solver_status}</p>
-<p>Total Cost: {results.cost / 100}€</p>
+<p>Total Cost: {results.cost / 100}€ {results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
 <h2 class="text-xl font-semibold">Used subscriptions</h2>
 <div class="flex flex-col gap-2">
 
