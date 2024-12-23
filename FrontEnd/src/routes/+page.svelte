@@ -45,8 +45,8 @@
 	}
 </script>
 
-<div class="bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen items-center justify-center">
-	<div class="w-full max-w-2xl rounded-lg bg-gray-50 p-4 shadow-lg">
+<div class="bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen overflow-y-auto  items-center justify-center">
+	<div class="w-full max-w-3xl rounded-lg bg-gray-50 p-4 shadow-lg">
 		<Typewriter delay={500} keepCursorOnFinish={1000}>
 			<h1 class="mb-4 text-center text-3xl font-semibold">Welcome! ⚽</h1>
 		</Typewriter>
@@ -83,6 +83,7 @@
 			<div class="flex flex-col gap-3 grow">
 				<Label class="text-md">Looking for a specific timespan?</Label>
 				<Datepicker range bind:rangeFrom={dateRange.from} bind:rangeTo={dateRange.to} 
+               
                 dateFormat={
                     {
                         month: 'short',
