@@ -75,10 +75,13 @@ def optimize_packages():
     )
 
     # Add package coverage information to the filtered games
-    filtered_games_with_coverage = add_package_coverage(filtered_games, results, streaming_offers_raw, streaming_packages_raw)
+    filtered_games_with_coverage, start, end = add_package_coverage(filtered_games, results, streaming_offers_raw, streaming_packages_raw.fillna('null'))
 
-    packages, cost = get_subscription_details(streaming_packages_raw, results['active_yearly_subscriptions'], results['active_monthly_subscriptions'])
+    packages, cost = get_subscription_details(streaming_packages_raw.fillna('null'), results['active_yearly_subscriptions'], results['active_monthly_subscriptions'])
     response = {
+        "solver_status": results['status'],
+        "start_date": start,
+        "end_date": end,
         "cost": cost,
         "packages": packages,
         "games": filtered_games_with_coverage

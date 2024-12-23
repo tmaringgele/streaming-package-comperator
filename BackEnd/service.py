@@ -22,7 +22,10 @@ def add_package_coverage(filtered_games, optimization_results, streaming_offers,
         streaming_offers (pd.DataFrame): DataFrame of streaming offers.
 
     Returns:
-        list: List of filtered games with additional information about which packages cover the game.
+        tuple: A tuple containing:
+            - list: List of filtered games with additional information about which packages cover the game.
+            - str: Start date of the first game in the list.
+            - str: End date of the last game in the list.
     """
     # Extract active subscriptions
     active_monthly_subscriptions = optimization_results.get("active_monthly_subscriptions", [])
@@ -75,7 +78,11 @@ def add_package_coverage(filtered_games, optimization_results, streaming_offers,
     # Sort the filtered games by 'starts_at' in ascending order
     filtered_games_with_coverage = filtered_games_with_coverage.sort_values(by='starts_at')
 
-    return filtered_games_with_coverage.to_dict(orient='records')
+    # Get start_date and end_date
+    start_date = filtered_games_with_coverage['starts_at'].min().strftime('%Y-%m-%d')
+    end_date = filtered_games_with_coverage['starts_at'].max().strftime('%Y-%m-%d')
+
+    return filtered_games_with_coverage.to_dict(orient='records'), start_date, end_date
 
 def get_subscription_details(packages_df, yearly_subscriptions, monthly_subscriptions):
     """
