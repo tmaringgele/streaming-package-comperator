@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import pandas as pd
-from service import load_games, load_streaming_data
+from service import load_games, load_streaming_data, add_package_coverage
 from streaming_optimizer import preprocess_data, optimize_streaming_packages
 
 app = Flask(__name__)
@@ -66,7 +66,15 @@ def optimize_packages():
         preprocessed_data['P_g']
     )
 
-    return jsonify(results)
+    # Add package coverage information to the filtered games
+    filtered_games_with_coverage = add_package_coverage(filtered_games, results)
+
+    response = {
+        "optimization_results": results,
+        "filtered_games": filtered_games_with_coverage
+    }
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
