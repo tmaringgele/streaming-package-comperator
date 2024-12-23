@@ -19,6 +19,7 @@
     import all_clubs from '$lib/all_clubs.json';
     import { fetch } from 'whatwg-fetch';
     import ResultView from '$lib/components/ResultView.svelte';
+    import loadinggif from '$lib/assets/loading.gif';	
 
     let liveValue = [10];
     let highlightValue = [20];
@@ -28,6 +29,7 @@
     let selectedClubs: string[] = [];
     let clubs = all_clubs;
     let results = null;
+    let showresults = false
 
     const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
 
@@ -69,7 +71,10 @@
         }
     }
 
+    let loading = false;
     async function findPackage() {
+        showresults = true;
+        loading = true;
         const response = await fetch('http://127.0.0.1:5000/optimizePackages', {
             method: 'POST',
             headers: {
@@ -86,10 +91,12 @@
             })
         });
         results = await response.json();
+        loading = false
+        
     }
 </script>
 
-{#if results == null}
+{#if !showresults}
 <div class="bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen overflow-y-auto  items-center justify-center">
     <div class="w-full max-w-3xl rounded-lg bg-gray-50 p-4 shadow-lg relative">
         <Typewriter delay={500} keepCursorOnFinish={1000}>
@@ -204,6 +211,18 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
 </Toast>
 
 {:else}
-<Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={() => results = null}>Go back</Button>
+{#if loading}
+<div class="flex-col bg-primary-800 bg-gradient-to-tr from-primary-800 to-primary-600 flex h-screen overflow-y-auto  items-center justify-center">
+
+    <img src={loadinggif} alt="Loading" class=" w-20 "/>
+<h1 class="text-2xl text-white">Loading...</h1>
+</div>
+{:else}
+<Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={() => {
+    results = null
+    showresults = false
+    selectedClubs = []
+    } }>Go back</Button>
 <ResultView {results} />
+{/if}
 {/if}
