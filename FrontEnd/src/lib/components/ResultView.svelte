@@ -8,11 +8,11 @@
     let games = results.games;
 
     function calculateDependentGames(subscription, games) {
-        let coveredGames = games.filter(game =>  
+        let dependentGames = games.filter(game =>  
             !game.covered_by.some(pkg => pkg.id != subscription.package.id)
-        ); // ein game ist dependent von einem package, es nachdem wir das package removen es läge 0 hat
+        ); // a game is dependent from a package, if there is no other package covering it
         
-        return coveredGames.length;
+        return dependentGames.length;
     }
 </script>
 

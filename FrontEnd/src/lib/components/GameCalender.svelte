@@ -68,7 +68,7 @@
                                     <div class=" font-bold">{game.team_home} vs {game.team_away}</div>
                                     <div>Watch on: 
                                         <ul class="list-inside">
-                                            {#each game.covered_by as p}
+                                            {#each [...new Map(game.covered_by.map(p => [p.id, p])).values()] as p}
                                                 <li class="flex flex-row gap-1">📺 {p.name} 
                                                     {#if p.live}
                                                         <img src={liveicon} alt="Live Icon" class="h-4 inline-block"/>

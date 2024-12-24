@@ -178,7 +178,7 @@ def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_
 
     # Increase costs by 1 to avoid multiple inclusions of free packages
     adjusted_C_month = {p: cost + 1 for p, cost in filtered_C_month.items()}
-    adjusted_C_year = {p: cost + 1 for p, cost in filtered_C_year.items()}
+    adjusted_C_year = {p: cost + 12 for p, cost in filtered_C_year.items()}
 
     # Generate possible start dates for rolling subscriptions
     start_dates = sorted(set(game_dates.values()))
