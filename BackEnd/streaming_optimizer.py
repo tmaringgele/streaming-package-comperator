@@ -111,7 +111,7 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
         .set_index('id')['yearly_price'].to_dict()
     
     # This is like a hyperparameter
-    # 100 ** (5 * value) turned out to be a good sweet spot
+    # 100 ** (5 * value) turned out to be a good sweet
     def computePenalty(value):
         return 100 ** (5 * value)
     

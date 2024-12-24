@@ -2,6 +2,8 @@
     import type { OptimizationResponse } from '$lib/types';
     import { Badge } from 'flowbite-svelte';
     import GameCalender from '$lib/components/GameCalender.svelte';
+    import { Section, Schedule, ScheduleItem } from "flowbite-svelte-blocks";
+
     export let results: OptimizationResponse;
     let start_date = new Date(results.start_date);
     let end_date = new Date(results.end_date);
@@ -14,6 +16,44 @@
         
         return dependentGames.length;
     }
+
+    const schedule = [
+  {
+    time: "08:00 - 09:00",
+    href: "/",
+    title: "Opening remarks"
+  },
+  {
+    time: "09:00 - 10:00",
+    href: "/",
+    title: "Bergside LLC: Controlling the video traffic flows"
+  },
+  {
+    time: "10:00 - 11:00",
+    href: "/",
+    title: "Flowbite - An Open Framework for Forensic Watermarking"
+  },
+  {
+    time: "11:00 - 12:00",
+    href: "/",
+    title: "Coffee Break"
+  },
+  {
+    time: "12:00 - 13:00",
+    href: "/",
+    title: "Scaling your brand from \u20AC0 to multimillion euros"
+  },
+  {
+    time: "13:00 - 14:00",
+    href: "/",
+    title: "Updates from the Open Source Multimedia community"
+  },
+  {
+    time: "14:00 - 15:00",
+    href: "/",
+    title: "Exploring the balance between customer acquisition and retention"
+  }
+];
 </script>
 
 <div class="flex flex-col gap-5"> 
@@ -40,6 +80,16 @@
     </div>
 {/each}
 </div>
+
+<Section name="schedule" sectionClass="bg-white dark:bg-gray-900 antialiased">
+    <Schedule scheduleName="Action Plan">
+      <div class="mt-4" slot="subtitle">
+      </div>
+      {#each schedule as item}
+        <ScheduleItem {item} />
+      {/each}
+    </Schedule>
+  </Section>
 
 <h2 class="text-xl font-semibold">Available Games</h2>
 <GameCalender {start_date} {end_date}  {games}/>

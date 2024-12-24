@@ -59,6 +59,8 @@ def optimize_packages():
     # Load streaming offers and packages data
     streaming_offers_raw, streaming_packages_raw = load_streaming_data()
 
+    #We need to keep this 'hardcoded' logic to force the solver to return live games
+    #If we would implement this with the penalty, costs would be too high and the solver would break / the IP would be infeasable.
     if highlight_value >= 1:
         streaming_offers_raw = streaming_offers_raw[streaming_offers_raw['highlights'] == 1]
 
