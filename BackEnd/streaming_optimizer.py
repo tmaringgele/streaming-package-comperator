@@ -110,6 +110,11 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
     C_year = filtered_packages.dropna(subset=['yearly_price']) \
         .set_index('id')['yearly_price'].to_dict()
     
+    # This is like a hyperparameter
+    # 100 ** (5 * value) turned out to be a good sweet spot
+    def computePenalty(value):
+        return 100 ** (5 * value)
+    
     if live_value > 0:
         ### if a game is not offered live: increase package price
         # Get all packages that dont offer live
@@ -117,9 +122,9 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
         # Increase the prices of packages that dont offer live
         for p in packages_no_live:
             if p in C_month:
-                C_month[p] += 100 ** live_value 
+                C_month[p] += computePenalty(live_value)
             if p in C_year:
-                C_year[p] += (100 ** live_value) * 12
+                C_year[p] += computePenalty(live_value) * 12
                 
     if highlight_value > 0:
         ### if a game is not offered highlight: increase package price
@@ -128,9 +133,9 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
         # Increase the prices of packages that dont offer highlight
         for p in packages_no_highlight:
             if p in C_month:
-                C_month[p] += (30 ** highlight_value) 
+                C_month[p] += computePenalty(highlight_value)
             if p in C_year:
-                C_year[p] +=  (30 ** highlight_value) * 12
+                C_year[p] +=  computePenalty(highlight_value) * 12
 
 
     # Create P_g dictionary: Maps game IDs to the list of streaming package IDs that can stream the game
