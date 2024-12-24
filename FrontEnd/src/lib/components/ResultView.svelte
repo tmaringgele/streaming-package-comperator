@@ -30,7 +30,11 @@
         {#if subscription.price <= 0}
             <span>Free 🤩</span>
         {:else}
-            <span>{subscription.price / 100}€</span>{subscription.yearly == 1 ? '/ year' : '/ month'}
+        {#if subscription.yearly == 1}
+            <span>{(subscription.price / 100).toFixed(2)}€ / year</span>
+        {:else}
+            <span>{(subscription.price / 100).toFixed(2)}€ / month</span>
+        {/if}
             Remove this subscription and lose {calculateDependentGames(subscription, results.games)} games
         {/if}
     </div>

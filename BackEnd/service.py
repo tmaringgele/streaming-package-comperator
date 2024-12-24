@@ -110,7 +110,7 @@ def get_subscription_details(packages_df, yearly_subscriptions, monthly_subscrip
             "package": package_row,
             "start_date": start_date,
             "yearly": 1,
-            "price": price
+            "price": price * 12
         })
 
     # Process monthly subscriptions
