@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
-from service import load_games, load_streaming_data, add_package_coverage, get_subscription_details
+from service import load_games, load_streaming_data, add_package_coverage, get_subscription_details, filter_games
 from streaming_optimizer import preprocess_data, optimize_streaming_packages
 
 app = Flask(__name__)
@@ -43,24 +43,16 @@ def optimize_packages():
     start_date = timespan.get('start_date')
     end_date = timespan.get('end_date')
 
-    # Filter games based on the provided clubs and timespan
-    filtered_games = games_df[
-        ((games_df['team_home'].isin(clubs)) | (games_df['team_away'].isin(clubs)))
-    ]
-
-    if start_date:
-        filtered_games = filtered_games[filtered_games['starts_at'] >= start_date]
-    if end_date:
-        filtered_games = filtered_games[filtered_games['starts_at'] <= end_date]
+    # Filter out irrelevant games
+    filtered_games = filter_games(games_df, clubs, start_date, end_date)
 
     if filtered_games.empty:
         response = {
-        "live_value": live_value,
-        "highlight_value": highlight_value,
-        "solver_status": "No games found for the selected filters.",
-        "start_date": start_date,
-        "end_date": end_date,
-        
+            "live_value": live_value,
+            "highlight_value": highlight_value,
+            "solver_status": "No games found for the selected filters.",
+            "start_date": start_date,
+            "end_date": end_date,
         }
         return jsonify(response), 404
 
@@ -70,13 +62,14 @@ def optimize_packages():
     # Load streaming offers and packages data
     streaming_offers_raw, streaming_packages_raw = load_streaming_data()
 
-    #We need to keep this 'hardcoded' logic to force the solver to return live games
-    #If we would implement this with the penalty, costs would be too high and the solver would break / the IP would be infeasable.
+    # We need to keep this 'hardcoded' logic to force the solver to return live games
+    # If we would implement this with the penalty, costs would be too high and the solver would break / the IP would be infeasable.
     if highlight_value >= 1:
         streaming_offers_raw = streaming_offers_raw[streaming_offers_raw['highlights'] == 1]
 
     if live_value >= 1:
         streaming_offers_raw = streaming_offers_raw[streaming_offers_raw['live'] == 1]
+
     # Preprocess data
     preprocessed_data = preprocess_data(
         game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, live_value, highlight_value)
@@ -108,7 +101,6 @@ def optimize_packages():
         "packages": packages,
         "games": filtered_games_with_coverage
     }
-
 
     return jsonify(response)
 

@@ -160,6 +160,9 @@
                     }
                 }
                 />
+                {#if dateRange.from && dateRange.to}
+                    <Button outline color="primary" size="sm" on:click={() => dateRange = { from: null, to: null }}>Clear</Button>
+                {/if}
             </div>
             <div class="flex flex-col gap-8">
                 <div class=" flex grow flex-col gap-3">

@@ -8,9 +8,31 @@ def load_freeTV():
     return pd.read_csv('data/freeTV_packages.csv')
 
 def load_streaming_data():
-    streaming_offers_raw = pd.read_csv('data/bc_streaming_offer.csv')
-    streaming_packages_raw = pd.read_csv('data/bc_streaming_package.csv')
-    return streaming_offers_raw, streaming_packages_raw
+    return pd.read_csv('data/bc_streaming_offer.csv'), pd.read_csv('data/bc_streaming_package.csv')
+
+def filter_games(games_df, clubs, start_date, end_date):
+    """
+    Filters games based on the provided clubs and timespan.
+
+    Parameters:
+        games_df (pd.DataFrame): DataFrame containing all games data.
+        clubs (list): List of club names to filter by.
+        start_date (str): Start date for the timespan filter.
+        end_date (str): End date for the timespan filter.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame of games.
+    """
+    filtered_games = games_df[
+        ((games_df['team_home'].isin(clubs)) | (games_df['team_away'].isin(clubs)))
+    ]
+
+    if start_date:
+        filtered_games = filtered_games[filtered_games['starts_at'] >= start_date]
+    if end_date:
+        filtered_games = filtered_games[filtered_games['starts_at'] <= end_date]
+
+    return filtered_games
 
 def add_package_coverage(filtered_games, optimization_results, streaming_offers, streaming_packages):
     """
