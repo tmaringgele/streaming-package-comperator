@@ -73,6 +73,8 @@
       
     }
 
+    let payedPlans = getPayedSubscriptions(results.packages);
+
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
@@ -123,28 +125,28 @@
   </Popover>
 
 </div>
-<hr class="w-4/5 border-gray-300 my-5">
+<hr class="w-full border-gray-300 my-5">
 <div class="flex flex-row gap-10 mt-10 w-full justify-items-stretch justify-evenly max-h-full">
   {#if totalCost > 0}
   <div class="flex flex-col justify-start content-center gap-4 items-center px-5">
     <h2 class="text-xl font-semibold self-center">Action plan 💰</h2>
     <Timeline>
-      {#each getPayedSubscriptions(results.packages).slice(0, numberOfShownActionPlans) as subscription}
+      {#each payedPlans.slice(0, numberOfShownActionPlans) as subscription}
 
       {#if subscription.price > 0}
       
         <TimelineItem spanClass="ring-primary"
-         title={subscription.package.name} date={new Date(subscription.start_date).toLocaleDateString()}>
+         title={subscription.package.name} date={(new Date(subscription.start_date)).toDateString()}>
         
           <p>Subscribe for one {subscription.yearly == 1 ? 'Year' : 'Month'}</p>
           
         </TimelineItem>
       {/if}
       {/each}
-      {#if numberOfShownActionPlans < getPayedSubscriptions(results.packages).length}
+      {#if numberOfShownActionPlans < payedPlans.length}
         <p class="mt-3 underline text-center text-gray-600 font-semibold" on:click={() => {numberOfShownActionPlans = getPayedSubscriptions(results.packages).length}}>Show more</p>
-      {:else}
-      <p class="mt-3 underline text-center text-gray-600 font-semibold"  on:click={() => {numberOfShownActionPlans = 3}}>Show less</p>
+      {:else if payedPlans.length > 3}
+        <p class="mt-3 underline text-center text-gray-600 font-semibold"  on:click={() => {numberOfShownActionPlans = 3}}>Show less</p>
         {/if}
      
       
