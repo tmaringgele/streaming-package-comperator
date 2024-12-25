@@ -262,7 +262,7 @@
         <InfoCircleSolid class="w-5 h-5" />
         <span class="text-lg"><span class="font-medium">Worst Deal:</span> {worstSubscription.subscription.package.name}</span> 
       </div>
-      <p class="mt-2 mb-4 text-sm">You can remove this {worstSubscription.subscription.yearly == 1 ? 'yearly' : 'monthly'} subscription at { new Date(worstSubscription.subscription.start_date).toDateString()} to save 
+      <p class="mt-2 mb-4 text-sm">You can remove this {worstSubscription.subscription.yearly == 1 ? 'yearly' : 'monthly'} subscription starting at { new Date(worstSubscription.subscription.start_date).toDateString()} to save 
         {((worstSubscription.subscription.price / 100)).toFixed(2)} €
       while losing <span class='underline' id="worstDealGames">{worstSubscription.dependentGames.length} game{worstSubscription.dependentGames.length == 1 ? '' : 's'}.</span>
       </p>
