@@ -18,10 +18,18 @@
     let neglectedGames: Game[] = []
     let neglectedSubscriptions: Subscription[] = []
 
-
-    function calculateDependentGames(subscription, games) {
+  function isBetweenDates(startDate, endDate, date) {
+  return date.getTime() >= startDate.getTime() && date.getTime() <= endDate.getTime();
+  }
+    function calculateDependentGames(subscription: Subscription, games) {
+      let start_date_subscription = new Date(subscription.start_date);
+      let end_date_subscription = new Date(start_date_subscription);
+      end_date_subscription.setDate(end_date_subscription.getDate() + (subscription.yearly == 1 ? 365 : 30));
         let dependentGames = games.filter(game =>  
-            !game.covered_by.some(pkg => pkg.id != subscription.package.id)
+            game.covered_by.filter(pkg => pkg.id != subscription.package.id).length == 0
+            &&
+            isBetweenDates(start_date_subscription, end_date_subscription, new Date(game.starts_at))//if game is in scope of subscription
+            
         ); // a game is dependent from a package, if there is no other package covering it
         
         return dependentGames;
