@@ -25,6 +25,9 @@
 
     // get subscription with the highest price/dependentGames ration
     function calculateWorstSubscription(payedPlans: Subscription[]) {
+      if(payedPlans.length <= 1){
+        return null
+      }
         let worstSubscription: {
             subscription: Subscription;
             dependentGames: Game[];
@@ -203,7 +206,7 @@
         </tr>
       </tbody>
     </table>
-    
+    {#if worstSubscription}
     <Alert color='red'>
       <div class="flex items-center gap-3">
         <InfoCircleSolid class="w-5 h-5" />
@@ -227,6 +230,7 @@
       {/each}
       </ul>
   </Popover>
+  {/if}
   </div>
   
 
