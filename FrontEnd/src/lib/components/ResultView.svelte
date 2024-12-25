@@ -80,8 +80,8 @@
 <div class="flex flex-col gap-1 items-center mt-5">
     <h1 class="text-3xl font-semibold">⚡Results📈</h1>
     <p class="text-center text-gray-600">Status: {results.solver_status}</p>
-    <p class="text-center text-gray-600">{results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
-
+    <p class="text-center text-gray-600">{(results.live_value == 1 || results.highlight_value == 1) && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live or non-highlight games)' : ''}</p>
+    
     <div class="flex gap-2 flex-wrap max-w-xl justify-center my-3">
         {#if showAllClubs}
             {#each selectedClubs as club}
