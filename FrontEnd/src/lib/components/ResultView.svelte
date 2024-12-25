@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { OptimizationResponse, Subscription, Game } from '$lib/types';
-    import { Badge, Alert  } from 'flowbite-svelte';
+    import { Badge, Alert, AccordionItem, Accordion  } from 'flowbite-svelte';
     import GameCalender from '$lib/components/GameCalender.svelte';
     import { Section, Schedule, ScheduleItem } from "flowbite-svelte-blocks";
     import { Timeline, TimelineItem, Button, Popover } from 'flowbite-svelte';
@@ -14,6 +14,10 @@
     let end_date = new Date(results.end_date);
     let games = results.games;
     let showAllClubs = false;
+
+    let neglectedGames: Game[] = []
+    let neglectedSubscriptions: Subscription[] = []
+
 
     function calculateDependentGames(subscription, games) {
         let dependentGames = games.filter(game =>  
@@ -89,19 +93,41 @@
         return {usedPackages, totalCost};
         
     }
-    let {usedPackages, totalCost} = calculateUsedPackages(results.packages);
+    let usedPackages
+    let totalCost
+    ({usedPackages, totalCost} = calculateUsedPackages(results.packages));
 
     let numberOfShownActionPlans = 3
     function getPayedSubscriptions(subscriptions: Subscription[]) {
       
-        return subscriptions.filter(subscription => subscription.price > 0)
+        return subscriptions.filter(subscription => 
+            subscription.price > 0
+        )
       
       
     }
 
     let payedPlans = getPayedSubscriptions(results.packages);
     let worstSubscription = calculateWorstSubscription(payedPlans);
-    console.log("Worst Subscription", worstSubscription);
+    
+    
+    
+    function neglectWorstDeal(){
+      
+      // add worst deal to neglected games
+      neglectedGames = [...neglectedGames, ...worstSubscription.dependentGames];
+      neglectedSubscriptions = [...neglectedSubscriptions, worstSubscription.subscription];
+      
+      games = games.filter(game => !neglectedGames.includes(game));
+      results.packages = results.packages.filter(subscription => !neglectedSubscriptions.includes(subscription));
+      ({usedPackages, totalCost} = calculateUsedPackages(results.packages));
+      console.log('results.packages', results.packages)
+      payedPlans = getPayedSubscriptions(results.packages);
+      worstSubscription = calculateWorstSubscription(payedPlans);
+      console.log(neglectedGames)
+      console.log(neglectedSubscriptions)
+    }
+
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
@@ -128,6 +154,31 @@
         {/if}
     </div>
     <p class="text-center underline " id="query-details">Query Details</p>
+    <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#query-details`}>
+      <table class="table-auto w-full border-collapse">
+        <tbody class="w-full">
+          <tr>
+            <td><span class='font-bold'>Start Date:</span></td>
+            <td>{start_date.toLocaleDateString()}</td>
+          </tr>
+          <tr>
+            <td><span class='font-bold'>End Date:</span></td>
+            <td>{end_date.toLocaleDateString()}</td>
+          </tr>
+          <tr>
+            <td><span class='font-bold'>Live Importance:</span></td>
+            <td>{(results.live_value * 100).toFixed(0)}%</td>
+          </tr>
+          <tr>
+            <td><span class='font-bold'>Highlight Importance:</span></td>
+            <td>{(results.highlight_value * 100).toFixed(0)}%</td>
+          </tr>
+        </tbody>
+      </table>
+  </Popover>
+
+  
+  <Alert class='underline' color='red' id="neglected-games">{neglectedGames.length} neglected games</Alert>
     <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#query-details`}>
       <table class="table-auto w-full border-collapse">
         <tbody class="w-full">
@@ -213,12 +264,12 @@
         <span class="text-lg"><span class="font-medium">Worst Deal:</span> {worstSubscription.subscription.package.name}</span> 
       </div>
       <p class="mt-2 mb-4 text-sm">You can remove this {worstSubscription.subscription.yearly == 1 ? 'yearly' : 'monthly'} subscription at { new Date(worstSubscription.subscription.start_date).toDateString()} to save 
-        {worstSubscription.subscription.yearly ? ((worstSubscription.subscription.price / 100) * 12).toFixed(2) : ((worstSubscription.subscription.price / 100)).toFixed(2)} €
+        {((worstSubscription.subscription.price / 100)).toFixed(2)} €
       while only losing <span class='underline' id="worstDealGames">{worstSubscription.dependentGames.length} game{worstSubscription.dependentGames.length == 1 ? '' : 's'}.</span>
       </p>
      
       <div class="flex gap-2">
-        <Button size="xs" color='red' outline>Remove</Button>
+        <Button size="xs" color='red' outline on:click={neglectWorstDeal}>Remove</Button>
       </div>
     </Alert>
     <Popover class="w-fit text-sm font-light w-lg" triggeredBy={`#worstDealGames`}>
