@@ -1,11 +1,12 @@
 <script lang="ts">
-    import type { OptimizationResponse } from '$lib/types';
+    import type { OptimizationResponse, Subscription } from '$lib/types';
     import { Badge } from 'flowbite-svelte';
     import GameCalender from '$lib/components/GameCalender.svelte';
     import { Section, Schedule, ScheduleItem } from "flowbite-svelte-blocks";
     import { Timeline, TimelineItem, Button, Popover } from 'flowbite-svelte';
   import { ArrowRightOutline } from 'flowbite-svelte-icons';
   import { getRandomColor } from '$lib/functions';
+	import { onMount } from 'svelte';
 
     export let results: OptimizationResponse;
     export let selectedClubs: string[] = [];
@@ -22,49 +23,62 @@
         return dependentGames.length;
     }
 
-    const schedule = [
-  {
-    time: "08:00 - 09:00",
-    href: "/",
-    title: "Opening remarks"
-  },
-  {
-    time: "09:00 - 10:00",
-    href: "/",
-    title: "Bergside LLC: Controlling the video traffic flows"
-  },
-  {
-    time: "10:00 - 11:00",
-    href: "/",
-    title: "Flowbite - An Open Framework for Forensic Watermarking"
-  },
-  {
-    time: "11:00 - 12:00",
-    href: "/",
-    title: "Coffee Break"
-  },
-  {
-    time: "12:00 - 13:00",
-    href: "/",
-    title: "Scaling your brand from \u20AC0 to multimillion euros"
-  },
-  {
-    time: "13:00 - 14:00",
-    href: "/",
-    title: "Updates from the Open Source Multimedia community"
-  },
-  {
-    time: "14:00 - 15:00",
-    href: "/",
-    title: "Exploring the balance between customer acquisition and retention"
-  }
-];
+    // returns a duplicate-free list of used packages with total price
+    function calculateUsedPackages(subscriptions: Subscription[]) {
+        let usedPackages: {
+          amount: number;
+          yearly: boolean;
+          pkg: {
+            id: number;
+            name: string;
+          };
+          price: number;
+        } = [];
+        let totalCost = 0;
+        subscriptions.forEach(subscription => {
+          let existingSubscription = usedPackages.find(sub => sub.pkg.id == subscription.package.id);
+          if (existingSubscription) {
+            existingSubscription.amount++;
+            totalCost += subscription.price;
+          } else {
+            usedPackages.push({
+              amount: 1,
+              yearly: subscription.yearly == 1,
+              pkg: {
+                id: subscription.package.id,
+                name: subscription.package.name
+              },
+              price: subscription.price
+            });
+            totalCost += subscription.price;
+          }
+        });
+
+        // sort such that free tv is at the bottom
+        usedPackages.sort((a, b) => {
+          if (a.price == 0) return 1;
+          if (b.price == 0) return -1;
+          return a.price - b.price;
+        });
+        return {usedPackages, totalCost};
+        
+    }
+    let {usedPackages, totalCost} = calculateUsedPackages(results.packages);
+
+    let numberOfShownActionPlans = 3
+    function getPayedSubscriptions(subscriptions: Subscription[]) {
+      
+        return subscriptions.filter(subscription => subscription.price > 0)
+      
+      
+    }
+
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
     <h1 class="text-3xl font-semibold">Results</h1>
     <p class="text-center text-gray-600">Status: {results.solver_status}</p>
-    <p class="text-center text-gray-600">Total Cost: {results.cost / 100}€ {results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
+    <p class="text-center text-gray-600">{results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
 
     <div class="flex gap-2 flex-wrap max-w-xl justify-center my-3">
         {#if showAllClubs}
@@ -109,79 +123,64 @@
   </Popover>
 
 </div>
+<hr class="w-4/5 border-gray-300 my-5">
+<div class="flex flex-row gap-10 mt-10 w-full justify-items-stretch justify-evenly max-h-full">
+  {#if totalCost > 0}
+  <div class="flex flex-col justify-start content-center gap-4 items-center px-5">
+    <h2 class="text-xl font-semibold self-center">Action plan</h2>
+    <Timeline>
+      {#each getPayedSubscriptions(results.packages).slice(0, numberOfShownActionPlans) as subscription}
 
-<div class="flex flex-row gap-5">
-  <div class="flex flex-col">
-    <h2 class="text-xl font-semibold">Used subscriptions</h2>
-    <div class="flex flex-col gap-2">
-      {#each results.packages as subscription}
-        <div class="flex flex-row gap-2">
-          <Badge color="primary">{subscription.package.name}</Badge>
-          {#if subscription.price <= 0}
-            <span>Free 🤩</span>
-          {:else}
-            {#if subscription.yearly == 1}
-              <span>{(subscription.price / 100).toFixed(2)}€ / year</span>
-            {:else}
-              <span>{(subscription.price / 100).toFixed(2)}€ / month</span>
-            {/if}
-            Remove this subscription and lose {calculateDependentGames(subscription, results.games)} games
-          {/if}
-        </div>
+      {#if subscription.price > 0}
+        <TimelineItem title={subscription.package.name} date={new Date(subscription.start_date).toLocaleDateString()}>
+          <p>Subscribe for one {subscription.yearly == 1 ? 'Year' : 'Month'}</p>
+          
+        </TimelineItem>
+      {/if}
       {/each}
+      {#if numberOfShownActionPlans < getPayedSubscriptions(results.packages).length}
+        <p class="mt-3 underline text-center text-gray-600 font-semibold" on:click={() => {numberOfShownActionPlans = getPayedSubscriptions(results.packages).length}}>Show more</p>
+      {:else}
+      <p class="mt-3 underline text-center text-gray-600 font-semibold"  on:click={() => {numberOfShownActionPlans = 3}}>Show less</p>
+        {/if}
+     
+      
+    </Timeline>
+  
   </div>
+  {/if}
+  <div class="flex flex-col justify-start content-center gap-4 mt-10">
+    <h2 class="text-xl font-semibold self-center">Used subscriptions</h2>
+    <table class="table-auto w-full border-collapse">
+     
+      <tbody>
+        {#each usedPackages as {amount, pkg, price, yearly}}
+          <tr>
+            <td class="">{price != 0 ? amount+'x' : ''}</td>
+            <td class=" px-4 py-2">{pkg.name}</td>
+            <td class=" px-4 py-2">
+              {#if price == 0}
+                Free 🤩
+              {:else}
+                {(price / 100).toFixed(2)}€ {yearly ? 'per year' : 'per month'}
+              {/if}
+            </td>
+          </tr>
+        {/each}
+        <tr class="">
+          <td></td>
+          <td class=" px-4 py-2 font-bold border-t-2 border-black">Total</td>
+          <td class=" px-4 py-2 font-bold border-t-2 border-black">{(totalCost / 100).toFixed(2)}€</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
+  
+
 
 </div>
 
-<div class="flex flex-col gap-5"> 
-
-
-<p>Status: {results.solver_status}</p>
-<p>Total Cost: {results.cost / 100}€ {results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
-<h2 class="text-xl font-semibold">Used subscriptions</h2>
-<div class="flex flex-col gap-2">
-
-{#each results.packages as subscription}
-    <div class="flex flex-row gap-2">
-        <Badge color="primary">{subscription.package.name}</Badge>
-        {#if subscription.price <= 0}
-            <span>Free 🤩</span>
-        {:else}
-        {#if subscription.yearly == 1}
-            <span>{(subscription.price / 100).toFixed(2)}€ / year</span>
-        {:else}
-            <span>{(subscription.price / 100).toFixed(2)}€ / month</span>
-        {/if}
-            Remove this subscription and lose {calculateDependentGames(subscription, results.games)} games
-        {/if}
-    </div>
-{/each}
-</div>
-
-
-<Timeline>
-    <TimelineItem title="Application UI code in Tailwind CSS" date="February 2022">
-      <p class="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">Get access to over 20+ pages including a dashboard layout, charts, kanban board, calendar, and pre-order E-commerce & Marketing pages.</p>
-      <Button color="alternative">Learn more<ArrowRightOutline class="ms-2 w-5 h-5" /></Button>
-    </TimelineItem>
-    <TimelineItem title="Application UI code in Tailwind CSS" date="March 2022">
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">All of the pages and components are first designed in Figma and we keep a parity between the two versions even as we update the project.</p>
-    </TimelineItem>
-    <TimelineItem title="Application UI code in Tailwind CSS" date="April 2022">
-      <p class="text-base font-normal text-gray-500 dark:text-gray-400">Get started with dozens of web components and interactive elements built on top of Tailwind CSS.</p>
-    </TimelineItem>
-  </Timeline>
-
-<Section name="schedule" sectionClass="bg-white dark:bg-gray-900 antialiased">
-    <Schedule scheduleName="Action Plan">
-      <div class="mt-4" slot="subtitle">
-      </div>
-      {#each schedule as item}
-        <ScheduleItem {item} />
-      {/each}
-    </Schedule>
-  </Section>
+<div class="flex flex-col gap-5 mt-10 items-center"> 
 
 <h2 class="text-xl font-semibold">Available Games</h2>
 <GameCalender {start_date} {end_date}  {games}/>

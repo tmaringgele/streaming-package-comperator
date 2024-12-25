@@ -34,7 +34,6 @@
             gamesByYearMonth[yearMonth].push(game);
         });
     }
-    console.log(games)
 </script>
 
 {#if start_date && end_date}
