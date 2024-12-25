@@ -188,8 +188,8 @@
       </table>
   </Popover>
 
-  
-  <Alert class='underline' color='red' id="neglected-games">{neglectedGames.length} neglected games</Alert>
+  {#if neglectedGames.length > 0}
+  <Alert class='underline' color='red' id="neglected-games">{neglectedGames.length} neglected game{neglectedGames.length == 1 ? '' : 's'}</Alert>
     <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#neglected-games`}>
       <ul class="">
         {#each neglectedGames as game}
@@ -199,6 +199,7 @@
         {/each}
         </ul>
   </Popover>
+  {/if}
 
 </div>
 <hr class="w-full border-gray-300 my-5">
