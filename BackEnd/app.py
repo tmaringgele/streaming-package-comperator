@@ -53,6 +53,17 @@ def optimize_packages():
     if end_date:
         filtered_games = filtered_games[filtered_games['starts_at'] <= end_date]
 
+    if filtered_games.empty:
+        response = {
+        "live_value": live_value,
+        "highlight_value": highlight_value,
+        "solver_status": "No games found for the selected filters.",
+        "start_date": start_date,
+        "end_date": end_date,
+        
+        }
+        return jsonify(response), 404
+
     game_ids_of_interest = filtered_games['id'].tolist()
     init_num_games = len(game_ids_of_interest)
 

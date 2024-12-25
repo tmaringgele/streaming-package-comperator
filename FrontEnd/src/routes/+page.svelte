@@ -52,6 +52,12 @@
     }
 
     
+    function displayError(msg: string, duration: number = 3000) {
+        error = msg;
+        setTimeout(() => {
+            error = false;
+        }, duration);
+    }
 
     function addClub(query: string) {
         if (clubs.includes(query) && !selectedClubs.includes(query)) {
@@ -59,26 +65,17 @@
             query = '';
             error = false;
         } else if (selectedClubs.includes(query)) {
-            error = 'Club is already selected.';
-            setTimeout(() => {
-                error = '';
-            }, 3000);
+            displayError('Club already added.', 3000);
         } else {
-            error = 'Club is not in our list.';
-            setTimeout(() => {
-                error = false;
-            }, 3000);
+            displayError('Club not found.', 3000);	
         }
     }
 
     let loading = false;
     async function findPackage() {
         if (selectedClubs.length <= 0) {
-        error = 'Please add at least on club.';
-            setTimeout(() => {
-                error = false;
-            }, 3000);
-            return;
+        displayError('Please select at least one club.', 3000);
+        return
         }
         showresults = true;
         loading = true;
@@ -97,10 +94,17 @@
                 highlight_value: highlightValue[0]
             })
         });
+        if (response.status === 404) {
+            showresults = false;
+            loading = false;
+            displayError('No games found. Please try again.', 3000);
+            return;
+        }
         results = await response.json();
-        loading = false
+        loading = false;
         
     }
+    
 </script>
 
 {#if !showresults}
@@ -228,7 +232,6 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
 <Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={() => {
     results = null
     showresults = false
-    selectedClubs = []
     } }>Go back</Button>
 <ResultView {results} />
 {/if}
