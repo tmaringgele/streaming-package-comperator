@@ -95,10 +95,11 @@
                 highlight_value: highlightValue[0]
             })
         });
-        if (response.status === 404) {
+        if (response.status != 200) {
             showresults = false;
             loading = false;
-            displayError('No games found. Please try again.', 3000);
+            results  = await response.json()
+            displayError(results['solver_status'], 5000);
             return;
         }
         results = await response.json();

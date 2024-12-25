@@ -66,10 +66,20 @@ def preprocess_data(game_ids_of_interest, streaming_offers_raw, streaming_packag
             - "games_with_no_offers" (list): List of game IDs that have no streaming offers.
     """
     ## Preprocess data (minimize the size of data for optimization)
+    
 
     ### Step 1: Filter relevant packages
     # Identify package IDs that are relevant based on the offers for the selected games
     relevant_package_ids = streaming_offers_raw[streaming_offers_raw['game_id'].isin(game_ids_of_interest)]['streaming_package_id'].unique()
+    print("DEBUG: ", relevant_package_ids)
+
+    # Check if there are no relevant packages
+    if len(relevant_package_ids) <= 0:
+        result = {
+            "packages": relevant_package_ids,  # List of relevant package IDs
+        }
+        return result
+    
 
     # Filter streaming packages to include only those relevant to the selected games
     filtered_packages = streaming_packages_raw[streaming_packages_raw['id'].isin(relevant_package_ids)]
@@ -216,11 +226,11 @@ def optimize_streaming_packages(packages, games, game_dates, C_month, C_year, P_
 
     # Process results
     # Calculate the actual total cost (subtract the added cost of 1 per package activation)
-    actual_total_cost = pulp.value(model.objective) - sum(len(start_dates) for p in adjusted_C_month) - sum(len(start_dates) for p in adjusted_C_year)
+    #actual_total_cost = pulp.value(model.objective) - sum(len(start_dates) for p in adjusted_C_month) - sum(len(start_dates) for p in adjusted_C_year)
 
     results = {
         "status": pulp.LpStatus[status],
-        "total_cost": actual_total_cost,
+     #   "total_cost": actual_total_cost, # remove because not needed
         "active_monthly_subscriptions": [],
         "active_yearly_subscriptions": []
     }

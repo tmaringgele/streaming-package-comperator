@@ -70,9 +70,33 @@ def optimize_packages():
     if live_value >= 1:
         streaming_offers_raw = streaming_offers_raw[streaming_offers_raw['live'] == 1]
 
+    if streaming_offers_raw.empty:
+        response = {
+            "live_value": live_value,
+            "highlight_value": highlight_value,
+            "solver_status": "No games found for the selected filters.",
+            "start_date": start_date,
+            "end_date": end_date,
+        }
+        return jsonify(response), 404
+    
     # Preprocess data
     preprocessed_data = preprocess_data(
-        game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, games_df, live_value, highlight_value)
+        game_ids_of_interest, streaming_offers_raw, streaming_packages_raw, filtered_games, live_value, highlight_value)
+    if len(preprocessed_data['packages']) <= 0:
+        status = "No games found for the selected filters."
+        if live_value >= 1:
+            status = "There are no live games for this selection. Please try again with a lower live value."
+        if highlight_value >= 1:
+            status = "There are no highlight games for this selection. Please try again with a lower highlight value."
+        response = {
+            "live_value": live_value,
+            "highlight_value": highlight_value,
+            "solver_status": status,
+            "start_date": start_date,
+            "end_date": end_date,
+        }
+        return jsonify(response), 404
 
     # Optimize streaming packages
     results = optimize_streaming_packages(
@@ -83,6 +107,9 @@ def optimize_packages():
         preprocessed_data['C_year'],
         preprocessed_data['P_g']
     )
+
+    
+
 
     # Add package coverage information to the filtered games
     filtered_games_with_coverage, start, end = add_package_coverage(
