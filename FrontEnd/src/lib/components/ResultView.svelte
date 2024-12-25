@@ -105,7 +105,7 @@
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
-    <h1 class="text-3xl font-semibold">⚡Results📈</h1>
+    <h1 class="text-3xl font-semibold">⚡Results 📈</h1>
     <p class="text-center text-gray-600">Status: {results.solver_status}</p>
     <p class="text-center text-gray-600">{(results.live_value == 1 || results.highlight_value == 1) && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live or non-highlight games)' : ''}</p>
     
@@ -199,10 +199,10 @@
             </td>
           </tr>
         {/each}
-        <tr class="">
+        <tr class="border-black  border-t-2">
           <td></td>
-          <td class=" px-4 py-2 font-bold border-t-2 border-black">Total Costs</td>
-          <td class=" px-4 py-2 font-bold border-t-2 border-black">{(totalCost / 100).toFixed(2)} €</td>
+          <td class=" px-4 py-2 font-bold ">Total Costs</td>
+          <td class=" px-4 py-2 font-bold ">{(totalCost / 100).toFixed(2)} €</td>
         </tr>
       </tbody>
     </table>
@@ -212,7 +212,7 @@
         <InfoCircleSolid class="w-5 h-5" />
         <span class="text-lg"><span class="font-medium">Worst Deal:</span> {worstSubscription.subscription.package.name}</span> 
       </div>
-      <p class="mt-2 mb-4 text-sm">You can remove this package to save 
+      <p class="mt-2 mb-4 text-sm">You can remove this {worstSubscription.subscription.yearly == 1 ? 'yearly' : 'monthly'} subscription at { new Date(worstSubscription.subscription.start_date).toDateString()} to save 
         {worstSubscription.subscription.yearly ? ((worstSubscription.subscription.price / 100) * 12).toFixed(2) : ((worstSubscription.subscription.price / 100)).toFixed(2)} €
       while only losing <span class='underline' id="worstDealGames">{worstSubscription.dependentGames.length} game{worstSubscription.dependentGames.length == 1 ? '' : 's'}.</span>
       </p>
