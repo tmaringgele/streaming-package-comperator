@@ -4,6 +4,8 @@
     import liveicon from '$lib/assets/live-icon.png';
     import liveiconmini from '$lib/assets/live-icon-mini.png';
     import highlighticon from '$lib/assets/highlight-icon.png';
+    import { getRandomColor } from '$lib/functions';
+
     export let start_date: Date;
     export let end_date: Date;
     export let games: Game[];
@@ -12,7 +14,6 @@
     let months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     let gamesByYearMonth: { [key: string]: Game[] } = {};
 
-    const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
 
 
     $: if (start_date && end_date) {
@@ -56,7 +57,7 @@
                             {#each gamesByYearMonth[`${year}-${index}`] as game, gameIndex}
                                 <li class=" cursor-crosshair"
                                 id="game-{year}-{index}-{gameIndex}">
-                                <Badge color={badgeColors[Math.floor(Math.random() * badgeColors.length)]} class="mr-2 gap-2">
+                                <Badge color={getRandomColor()} class="mr-2 gap-2">
                                 
                                 <p>{new Date(game.starts_at).getDate()}. {month}</p> 
                                 {#if game.covered_by.filter(p => p.live == 1).length > 0}

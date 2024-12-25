@@ -3,6 +3,8 @@ export type Package = {
     name: string;
     monthly_price_cents: number | null;
     monthly_price_yearly_subscription_in_cents: number | null;
+    live: number;
+    highlights: number;
 };
 
 export type Subscription = {
@@ -27,4 +29,6 @@ export type OptimizationResponse = {
     cost: number;
     packages: Subscription[];
     games: Game[];
+    live_value: number;
+    highlight_value: number;
 };

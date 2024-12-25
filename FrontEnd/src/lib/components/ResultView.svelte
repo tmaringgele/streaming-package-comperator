@@ -3,13 +3,16 @@
     import { Badge } from 'flowbite-svelte';
     import GameCalender from '$lib/components/GameCalender.svelte';
     import { Section, Schedule, ScheduleItem } from "flowbite-svelte-blocks";
-    import { Timeline, TimelineItem, Button } from 'flowbite-svelte';
+    import { Timeline, TimelineItem, Button, Popover } from 'flowbite-svelte';
   import { ArrowRightOutline } from 'flowbite-svelte-icons';
+  import { getRandomColor } from '$lib/functions';
 
     export let results: OptimizationResponse;
+    export let selectedClubs: string[] = [];
     let start_date = new Date(results.start_date);
     let end_date = new Date(results.end_date);
     let games = results.games;
+    let showAllClubs = false;
 
     function calculateDependentGames(subscription, games) {
         let dependentGames = games.filter(game =>  
@@ -57,6 +60,79 @@
   }
 ];
 </script>
+
+<div class="flex flex-col gap-1 items-center mt-5">
+    <h1 class="text-3xl font-semibold">Results</h1>
+    <p class="text-center text-gray-600">Status: {results.solver_status}</p>
+    <p class="text-center text-gray-600">Total Cost: {results.cost / 100}€ {results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
+
+    <div class="flex gap-2 flex-wrap max-w-xl justify-center my-3">
+        {#if showAllClubs}
+            {#each selectedClubs as club}
+                <Badge large color={getRandomColor()} on:close={() => {
+                    selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
+                }}>{club}</Badge>
+            {/each}
+        {:else}
+            {#each selectedClubs.slice(0, 3) as club}
+                <Badge large color={getRandomColor()} on:close={() => {
+                    selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
+                }}>{club}</Badge>
+            {/each}
+            {#if selectedClubs.length > 3}
+                <span class="underline cursor-pointer" on:click={() => showAllClubs = true}>and {selectedClubs.length - 3} more</span>
+            {/if}
+        {/if}
+    </div>
+    <p class="text-center underline " id="query-details">Query Details</p>
+    <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#query-details`}>
+      <table class="table-auto w-full border-collapse">
+        <tbody class="w-full">
+          <tr>
+            <td><span class='font-bold'>Start Date:</span></td>
+            <td>{start_date.toLocaleDateString()}</td>
+          </tr>
+          <tr>
+            <td><span class='font-bold'>End Date:</span></td>
+            <td>{end_date.toLocaleDateString()}</td>
+          </tr>
+          <tr>
+            <td><span class='font-bold'>Live Importance:</span></td>
+            <td>{(results.live_value * 100).toFixed(0)}%</td>
+          </tr>
+          <tr>
+            <td><span class='font-bold'>Highlight Importance:</span></td>
+            <td>{(results.highlight_value * 100).toFixed(0)}%</td>
+          </tr>
+        </tbody>
+      </table>
+  </Popover>
+
+</div>
+
+<div class="flex flex-row gap-5">
+  <div class="flex flex-col">
+    <h2 class="text-xl font-semibold">Used subscriptions</h2>
+    <div class="flex flex-col gap-2">
+      {#each results.packages as subscription}
+        <div class="flex flex-row gap-2">
+          <Badge color="primary">{subscription.package.name}</Badge>
+          {#if subscription.price <= 0}
+            <span>Free 🤩</span>
+          {:else}
+            {#if subscription.yearly == 1}
+              <span>{(subscription.price / 100).toFixed(2)}€ / year</span>
+            {:else}
+              <span>{(subscription.price / 100).toFixed(2)}€ / month</span>
+            {/if}
+            Remove this subscription and lose {calculateDependentGames(subscription, results.games)} games
+          {/if}
+        </div>
+      {/each}
+  </div>
+  </div>
+
+</div>
 
 <div class="flex flex-col gap-5"> 
 

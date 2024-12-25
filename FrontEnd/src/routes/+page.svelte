@@ -9,7 +9,10 @@
         CalendarEditOutline,
         ChevronDownOutline,
         PlusOutline,
-        ExclamationCircleSolid
+        ExclamationCircleSolid,
+
+		ChevronLeftOutline
+
     } from 'flowbite-svelte-icons';
     import { onMount } from 'svelte';
     import Typewriter from 'svelte-typewriter';
@@ -20,6 +23,7 @@
     import { fetch } from 'whatwg-fetch';
     import ResultView from '$lib/components/ResultView.svelte';
     import loadinggif from '$lib/assets/loading.gif';	
+    import { getRandomColor } from '$lib/functions';
 
     let liveValue = [10];
     let highlightValue = [20];
@@ -31,11 +35,8 @@
     let results = null;
     let showresults = false
 
-    const badgeColors = ['dark', 'red', 'green', 'yellow', 'indigo', 'purple', 'pink'];
 
-    function getRandomColor() {
-        return badgeColors[Math.floor(Math.random() * badgeColors.length)];
-    }
+   
 
     function getLiveValueStatement(liveValue: number[]): string {
         if (liveValue[0] <= 0) {
@@ -160,7 +161,7 @@
                     }
                 }
                 />
-                {#if dateRange.from && dateRange.to}
+                {#if dateRange.from || dateRange.to}
                     <Button outline color="primary" size="sm" on:click={() => dateRange = { from: null, to: null }}>Clear</Button>
                 {/if}
             </div>
@@ -232,10 +233,10 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
 <h1 class="text-2xl text-white">Loading...</h1>
 </div>
 {:else}
-<Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={() => {
+<Button class="m-3 absolute " color="primary" size="sm" on:click={() => {
     results = null
     showresults = false
-    } }>Go back</Button>
-<ResultView {results} />
+    } }><ChevronLeftOutline />New Search</Button>
+<ResultView {results} {selectedClubs}/>
 {/if}
 {/if}
