@@ -182,27 +182,14 @@
 
   
   <Alert class='underline' color='red' id="neglected-games">{neglectedGames.length} neglected games</Alert>
-    <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#query-details`}>
-      <table class="table-auto w-full border-collapse">
-        <tbody class="w-full">
-          <tr>
-            <td><span class='font-bold'>Start Date:</span></td>
-            <td>{start_date.toLocaleDateString()}</td>
-          </tr>
-          <tr>
-            <td><span class='font-bold'>End Date:</span></td>
-            <td>{end_date.toLocaleDateString()}</td>
-          </tr>
-          <tr>
-            <td><span class='font-bold'>Live Importance:</span></td>
-            <td>{(results.live_value * 100).toFixed(0)}%</td>
-          </tr>
-          <tr>
-            <td><span class='font-bold'>Highlight Importance:</span></td>
-            <td>{(results.highlight_value * 100).toFixed(0)}%</td>
-          </tr>
-        </tbody>
-      </table>
+    <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#neglected-games`}>
+      <ul class="">
+        {#each neglectedGames as game}
+        <li class='py-1'>
+          {new Date(game.starts_at).toDateString()}: <span class=" font-semibold">{game.team_home} vs. {game.team_away}</span>
+        </li>
+        {/each}
+        </ul>
   </Popover>
 
 </div>
@@ -268,7 +255,7 @@
       </div>
       <p class="mt-2 mb-4 text-sm">You can remove this {worstSubscription.subscription.yearly == 1 ? 'yearly' : 'monthly'} subscription at { new Date(worstSubscription.subscription.start_date).toDateString()} to save 
         {((worstSubscription.subscription.price / 100)).toFixed(2)} €
-      while only losing <span class='underline' id="worstDealGames">{worstSubscription.dependentGames.length} game{worstSubscription.dependentGames.length == 1 ? '' : 's'}.</span>
+      while losing <span class='underline' id="worstDealGames">{worstSubscription.dependentGames.length} game{worstSubscription.dependentGames.length == 1 ? '' : 's'}.</span>
       </p>
      
       <div class="flex gap-2">
