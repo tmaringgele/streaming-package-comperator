@@ -126,6 +126,9 @@
       worstSubscription = calculateWorstSubscription(payedPlans);
       console.log(neglectedGames)
       console.log(neglectedSubscriptions)
+      if(worstSubscription?.dependentGames.length == 0){
+        neglectWorstDeal()
+      }
     }
 
 </script>
