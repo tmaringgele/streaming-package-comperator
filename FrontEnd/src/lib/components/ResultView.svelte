@@ -37,7 +37,7 @@
 
     // get subscription with the highest price/dependentGames ration
     function calculateWorstSubscription(payedPlans: Subscription[]) {
-      if(payedPlans.length <= 1){
+      if(payedPlans.length <= 0){
         return null
       }
         let worstSubscription: {
