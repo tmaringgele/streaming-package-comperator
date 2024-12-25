@@ -11,7 +11,10 @@
         PlusOutline,
         ExclamationCircleSolid,
 
-		ChevronLeftOutline
+		ChevronLeftOutline,
+
+		CloseOutline
+
 
     } from 'flowbite-svelte-icons';
     import { onMount } from 'svelte';
@@ -106,6 +109,10 @@
         loading = false;
         
     }
+
+    function removeClub(club: string) {
+        selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
+    }
     
 </script>
 
@@ -128,9 +135,14 @@
         </h2>
         <div class="mb-3 flex flex-wrap gap-2">
             {#each selectedClubs as club}
-                <Badge dismissable large color={getRandomColor()} on:close={() => {
-                    selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
-                }}>{club}</Badge>
+                <Badge dismissable large color={getRandomColor()} on:close={() => {removeClub(club)}}
+                    
+                    >{club}
+                    <button slot="close-button" on:click={() => removeClub(club)} type="button" class="inline-flex items-center rounded-full p-0.5 my-0.5 ms-1.5 -me-1.5 text-sm  " aria-label="Remove">
+                        <CloseOutline class="h-4 w-4 bg-transparent" />
+                        <span class="sr-only">Remove badge</span>
+                      </button>
+                </Badge>
             {/each}
         </div>
         <div class="relative">

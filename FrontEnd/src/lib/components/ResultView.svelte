@@ -76,7 +76,7 @@
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
-    <h1 class="text-3xl font-semibold">Results</h1>
+    <h1 class="text-3xl font-semibold">⚡Results📈</h1>
     <p class="text-center text-gray-600">Status: {results.solver_status}</p>
     <p class="text-center text-gray-600">{results.live_value == 1 && results.ignored_games > 0 ? '(not including '+results.ignored_games+' non-live games)' : ''}</p>
 
@@ -127,12 +127,15 @@
 <div class="flex flex-row gap-10 mt-10 w-full justify-items-stretch justify-evenly max-h-full">
   {#if totalCost > 0}
   <div class="flex flex-col justify-start content-center gap-4 items-center px-5">
-    <h2 class="text-xl font-semibold self-center">Action plan</h2>
+    <h2 class="text-xl font-semibold self-center">Action plan 💰</h2>
     <Timeline>
       {#each getPayedSubscriptions(results.packages).slice(0, numberOfShownActionPlans) as subscription}
 
       {#if subscription.price > 0}
-        <TimelineItem title={subscription.package.name} date={new Date(subscription.start_date).toLocaleDateString()}>
+      
+        <TimelineItem spanClass="ring-primary"
+         title={subscription.package.name} date={new Date(subscription.start_date).toLocaleDateString()}>
+        
           <p>Subscribe for one {subscription.yearly == 1 ? 'Year' : 'Month'}</p>
           
         </TimelineItem>
@@ -149,8 +152,8 @@
   
   </div>
   {/if}
-  <div class="flex flex-col justify-start content-center gap-4 mt-10">
-    <h2 class="text-xl font-semibold self-center">Used subscriptions</h2>
+  <div class="flex flex-col justify-start content-center gap-4 ">
+    <h2 class="text-xl font-semibold self-center">Used subscriptions 📺</h2>
     <table class="table-auto w-full border-collapse">
      
       <tbody>
@@ -169,8 +172,8 @@
         {/each}
         <tr class="">
           <td></td>
-          <td class=" px-4 py-2 font-bold border-t-2 border-black">Total</td>
-          <td class=" px-4 py-2 font-bold border-t-2 border-black">{(totalCost / 100).toFixed(2)}€</td>
+          <td class=" px-4 py-2 font-bold border-t-2 border-black">Total Costs</td>
+          <td class=" px-4 py-2 font-bold border-t-2 border-black">{(totalCost / 100).toFixed(2)} €</td>
         </tr>
       </tbody>
     </table>
@@ -182,19 +185,6 @@
 
 <div class="flex flex-col gap-5 mt-10 items-center"> 
 
-<h2 class="text-xl font-semibold">Available Games</h2>
+<h2 class="text-xl font-semibold">Available Games 🍿</h2>
 <GameCalender {start_date} {end_date}  {games}/>
 </div>
-<!-- <div class="mt-10">
-    <h2 class="text-xl font-semibold">Optimization Results</h2>
-    <p>Status: {results.solver_status}</p>
-    <p>Total Cost: {results.cost}</p>
-    <h3 class="mt-4 text-lg font-semibold">Filtered Games</h3>
-    <ul>
-        {#each results.games as game}
-            <li>
-                {game.team_home} vs {game.team_away} on {game.starts_at} - Covered by: {game.covered_by.map(pkg => pkg.name).join(', ')}
-            </li>
-        {/each}
-    </ul>
-</div> -->

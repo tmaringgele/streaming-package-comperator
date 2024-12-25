@@ -49,7 +49,7 @@
         <tbody>
             {#each years as year}
                 <tr class="border-b">
-                    <td class="border-r">{year}</td>
+                    <td class="border-r font-semibold">{year}</td>
                     {#each months as month, index}
                         <td class="border-r">
                             <ul>
