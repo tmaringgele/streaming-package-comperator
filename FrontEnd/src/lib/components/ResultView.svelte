@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { OptimizationResponse, Subscription } from '$lib/types';
-    import { Badge } from 'flowbite-svelte';
+    import type { OptimizationResponse, Subscription, Game } from '$lib/types';
+    import { Badge, Alert  } from 'flowbite-svelte';
     import GameCalender from '$lib/components/GameCalender.svelte';
     import { Section, Schedule, ScheduleItem } from "flowbite-svelte-blocks";
     import { Timeline, TimelineItem, Button, Popover } from 'flowbite-svelte';
-  import { ArrowRightOutline } from 'flowbite-svelte-icons';
+  import { ArrowRightOutline, InfoCircleSolid } from 'flowbite-svelte-icons';
   import { getRandomColor } from '$lib/functions';
 	import { onMount } from 'svelte';
 
@@ -20,7 +20,30 @@
             !game.covered_by.some(pkg => pkg.id != subscription.package.id)
         ); // a game is dependent from a package, if there is no other package covering it
         
-        return dependentGames.length;
+        return dependentGames;
+    }
+
+    // get subscription with the highest price/dependentGames ration
+    function calculateWorstSubscription(payedPlans: Subscription[]) {
+        let worstSubscription: {
+            subscription: Subscription;
+            dependentGames: Game[];
+
+        } = {
+            subscription: payedPlans[0],
+            dependentGames: calculateDependentGames(payedPlans[0], games)
+        }
+
+        payedPlans.forEach(subscription => {
+          let dependentGames = calculateDependentGames(subscription, games);
+            if ((subscription.price / dependentGames.length) > ( worstSubscription.subscription.price / worstSubscription.dependentGames.length)) {
+                worstSubscription = {
+                    subscription,
+                    dependentGames
+                }
+            }
+        });
+        return worstSubscription;
     }
 
     // returns a duplicate-free list of used packages with total price
@@ -74,7 +97,8 @@
     }
 
     let payedPlans = getPayedSubscriptions(results.packages);
-
+    let worstSubscription = calculateWorstSubscription(payedPlans);
+    console.log("Worst Subscription", worstSubscription);
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
@@ -144,9 +168,9 @@
       {/if}
       {/each}
       {#if numberOfShownActionPlans < payedPlans.length}
-        <p class="mt-3 underline text-center text-gray-600 font-semibold" on:click={() => {numberOfShownActionPlans = getPayedSubscriptions(results.packages).length}}>Show more</p>
+        <p class="mt-3 underline text-center text-gray-600 font-semibold cursor-pointer" on:click={() => {numberOfShownActionPlans = getPayedSubscriptions(results.packages).length}}>Show more</p>
       {:else if payedPlans.length > 3}
-        <p class="mt-3 underline text-center text-gray-600 font-semibold"  on:click={() => {numberOfShownActionPlans = 3}}>Show less</p>
+        <p class="mt-3 underline text-center text-gray-600 font-semibold cursor-pointer"  on:click={() => {numberOfShownActionPlans = 3}}>Show less</p>
         {/if}
      
       
@@ -179,6 +203,30 @@
         </tr>
       </tbody>
     </table>
+    
+    <Alert color='red'>
+      <div class="flex items-center gap-3">
+        <InfoCircleSolid class="w-5 h-5" />
+        <span class="text-lg"><span class="font-medium">Worst Deal:</span> {worstSubscription.subscription.package.name}</span> 
+      </div>
+      <p class="mt-2 mb-4 text-sm">You can remove this package to save 
+        {worstSubscription.subscription.yearly ? ((worstSubscription.subscription.price / 100) * 12).toFixed(2) : ((worstSubscription.subscription.price / 100)).toFixed(2)} €
+      while only losing <span class='underline' id="worstDealGames">{worstSubscription.dependentGames.length} game{worstSubscription.dependentGames.length == 1 ? '' : 's'}.</span>
+      </p>
+     
+      <div class="flex gap-2">
+        <Button size="xs" color='red' outline>Remove</Button>
+      </div>
+    </Alert>
+    <Popover class="w-fit text-sm font-light w-lg" triggeredBy={`#worstDealGames`}>
+      <ul class="">
+      {#each worstSubscription.dependentGames as game}
+      <li class='py-1'>
+        {new Date(game.starts_at).toDateString()}: <span class=" font-semibold">{game.team_home} vs. {game.team_away}</span>
+      </li>
+      {/each}
+      </ul>
+  </Popover>
   </div>
   
 
