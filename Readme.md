@@ -1,6 +1,34 @@
-Griaßeich! This solution to the Check24 GenDev Challenge 2024 uses Mixed Integer Programming.
+Griaß eich! 🐄 This solution to the [GenDev Challenge 2024](https://github.com/check24-scholarships/check24-best-combination-challenge) employs ✨Mixed Integer Programming.✨
 
-# Local Setup
+### 🚀 Live Demo
+Demo: [https://streaming-package-comperator.vercel.app/](https://streaming-package-comperator.vercel.app/)  
+(Note: This is hosted on a free tier. The first query may take up to one minute because the backend is automatically deactivated when idle.)
+
+### 💡 Main Idea
+At the core of this application lies a mathematical model known as a Mixed Integer Program (MIP), which determines the optimal combination of streaming packages to minimize the cost of watching a given set of games. 📊
+
+This mathematical model is solved using the PuLP solver in Python. 🐍
+
+📽️ Watch this video (TODO) where I showcase the application and delve deeper into the theory and implementation.
+
+### 🔧 Possible Future Improvements
+**Frontend** 🖥️:  
+  * 📋 Implement a table view where users can select specific games.  
+  * 🏆 Add a tournament selection feature.  
+  * 💰 Create a 'set maximum cost' option: Remove the worst deals iteratively until ```total_cost < maximum_cost```.
+
+**Backend** 🛠️:  
+  * 📂 Currently, each query accesses the CSV files as provided in the problem statement. Accessing the data through a merged CSV file or a database could significantly improve speed.  
+  * 🔄 The backend processes the dataframe in multiple loops. Consolidating operations into fewer loops could enhance performance.  
+  * ✂️ The pruning logic (removal of the worst deals) is currently implemented on the frontend. Moving this to the backend could further optimize performance.
+
+**Theory/Math** 📐:  
+  * ❓ After pruning, there is no guarantee that the model remains optimal. Implementing methods from [Sensitivity Analysis](https://ocw.ehu.eus/pluginfile.php/40934/mod_resource/content/1/4_Sensitivity.pdf) could help verify if re-solving is necessary.  
+  * 📦 There are alternative ways to model this use case and related scenarios. For example, if users set a maximum monthly or yearly budget, it could be modeled as a [Cutting Stock Problem](https://en.wikipedia.org/wiki/Cutting_stock_problem).
+
+
+
+## Local Setup
 ## BackEnd
 
 0. **Have python and pip installed**
