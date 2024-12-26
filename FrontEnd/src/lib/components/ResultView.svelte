@@ -37,13 +37,14 @@
 
     // get subscription with the highest price/dependentGames ratio
     function calculateWorstSubscription(payedPlans: Subscription[]) {
-      if(payedPlans.length <= 0){
+      if(payedPlans.length <= 0 || usedPackages.length <= 1){
         return null
       }
 
       if(payedPlans.length <= 1 && (results.live_value >= 1 || results.highlight_value >= 1)){
         return null
       }
+
         let worstSubscription: {
             subscription: Subscription;
             dependentGames: Game[];
