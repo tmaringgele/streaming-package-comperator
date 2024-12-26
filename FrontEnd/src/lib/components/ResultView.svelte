@@ -35,7 +35,7 @@
         return dependentGames;
     }
 
-    // get subscription with the highest price/dependentGames ration
+    // get subscription with the highest price/dependentGames ratio
     function calculateWorstSubscription(payedPlans: Subscription[]) {
       if(payedPlans.length <= 0){
         return null
