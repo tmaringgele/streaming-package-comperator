@@ -1,5 +1,44 @@
 Griaßeich! This solution to the Check24 GenDev Challenge 2024 uses Mixed Integer Programming.
 
+# Local Setup
+## BackEnd
+
+0. **Have python and pip installed**
+
+1. **Install the required dependencies**:
+
+    ```sh
+    cd backend
+    pip install -r requirements.txt
+    ```
+
+2. **Run the Flask application**:
+    ```sh
+    python app.py
+    ```
+
+The backend should now be running on `http://127.0.0.1:5000`.
+
+## FrontEnd
+0. **Have node and npm installed**
+1. **Rename `example.env` to `.env`**:
+Under Linux:
+   ```sh
+   cd frontend
+   mv example.env .env
+   ```
+2. **Install dependencies**
+   ```sh
+   npm i
+   ```
+3. **Fire up this baby**
+   ```sh
+   npm run dev
+   ```
+
+The frontend should now be running on `http://localhost:5173/`.
+
+
 ## Decision Variables
 1. **`x_i^month`** (Integer): Number of monthly subscriptions purchased for package `i`.  
 2. **`x_i^year`** (Integer): Number of yearly subscriptions purchased for package `i`.  

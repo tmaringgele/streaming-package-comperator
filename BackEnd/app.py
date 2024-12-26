@@ -12,7 +12,7 @@ games_df = load_games()
 
 @app.route("/")
 def hello_world():
-    return "Hello, World!"
+    return "Gott zum Gruße, Welt!"
 
 @app.route("/getGames", methods=["GET"])
 def get_games():

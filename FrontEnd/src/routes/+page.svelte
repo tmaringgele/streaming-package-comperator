@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { PUBLIC_API_BASE } from '$env/static/public';
     import { slide } from 'svelte/transition';
     import { Search, Button } from 'flowbite-svelte';
     import { Dropdown, DropdownItem, Badge } from 'flowbite-svelte';
@@ -37,6 +38,19 @@
     let clubs = all_clubs;
     let results = null;
     let showresults = false
+
+    const apiBase = PUBLIC_API_BASE ? PUBLIC_API_BASE : 'http://127.0.0.1:5000'; //std flask port
+
+    onMount(() => {
+        fetch(apiBase)
+            .then(response => response)
+            .then(data => {
+                console.log('API health check successful for '+apiBase+':', data);
+            })
+            .catch(error => {
+                console.error('Error making API call for '+apiBase+':', error);
+            });
+    });
 
 
    
@@ -83,7 +97,7 @@
         }
         showresults = true;
         loading = true;
-        const response = await fetch('http://127.0.0.1:5000/optimizePackages', {
+        const response = await fetch(apiBase+'/optimizePackages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
