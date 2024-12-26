@@ -239,7 +239,8 @@
         </div>
 
         <Button class="mt-10 w-full mb-2" color="primary" size="lg" on:click={findPackage}>Find my package</Button>
-        <p class="text-center underline-offset-3 underline text-gray-600 cursor-pointer">or choose specific games</p>
+        <p class="text-center underline-offset-3 underline text-gray-600 cursor-pointer" 
+        on:click={displayError("<a href='https://github.com/tmaringgele/streaming-package-comperator/fork' class='underline'>ToDo. Feel free to contribute</a>", 5000)}>or choose specific games</p>
     </div>
 </div>
 
@@ -249,7 +250,7 @@ divClass="w-full max-w-xs p-4 text-gray-500 bg-white shadow dark:text-gray-400 d
       <ExclamationCircleSolid class="w-5 h-5" />
       <span class="sr-only">Warning icon</span>
     </svelte:fragment>
-    {error}
+    {@html error}
 </Toast>
 
 {:else}
