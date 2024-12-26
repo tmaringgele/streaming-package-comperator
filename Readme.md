@@ -9,9 +9,9 @@ At the core of this application lies a mathematical model known as a Mixed Integ
 
 This mathematical model is solved using the PuLP solver in Python. 🐍
 
-📽️ Watch this video (TODO) where I showcase the application and delve deeper into the implementation.
+📽️ Watch this video (TODO) where I showcase the application and delve deeper into the theory and implementation.
 
-📚 For those who want to dive deeper into the mathematical details, see the `explanation_for_nerds.ipynb` file, which provides a detailed explanation of the underlying model.  
+📚 For those who want to dive deeper into the mathematical details, see the `explanation_for_nerds.ipynb` file, which provides a detailed explanation of the underlying math.  
 
 ### 🔧 Possible Future Improvements
 **Frontend** 🖥️:  
@@ -26,8 +26,8 @@ This mathematical model is solved using the PuLP solver in Python. 🐍
 
 **Theory/Math** 📐:  
   * ❓ After pruning, there is no guarantee that the model remains optimal. Implementing methods from [Sensitivity Analysis](https://ocw.ehu.eus/pluginfile.php/40934/mod_resource/content/1/4_Sensitivity.pdf) could help verify if re-solving is necessary.  
-  * 📦 There are alternative ways to model this use case and related scenarios. For example, if users set a maximum monthly or yearly budget, it could be modeled as a [Cutting Stock Problem](https://en.wikipedia.org/wiki/Cutting_stock_problem).
-
+  * 📦 There are alternative ways to model this use case and related scenarios. For example, if users set a maximum monthly or yearly budget, it could be modeled as a [Cutting Stock Problem](https://en.wikipedia.org/wiki/Cutting_stock_problem).  
+  * ⚡ Use a more advanced solver like [Gurobi](https://www.gurobi.com/) or [CPLEX](https://www.ibm.com/analytics/cplex-optimizer) for faster and more efficient performance, especially for larger datasets or more complex constraints.
 
 ## 🛠️ Local Setup
 
