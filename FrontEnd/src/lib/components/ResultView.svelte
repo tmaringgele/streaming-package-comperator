@@ -40,6 +40,10 @@
       if(payedPlans.length <= 0){
         return null
       }
+
+      if(payedPlans.length <= 1 && (results.live_value >= 1 || results.highlight_value >= 1)){
+        return null
+      }
         let worstSubscription: {
             subscription: Subscription;
             dependentGames: Game[];
