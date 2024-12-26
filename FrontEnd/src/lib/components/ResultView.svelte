@@ -150,7 +150,7 @@
       //console.log('results.packages', results.packages)
       //console.log("neglected games", neglectedGames)
       //console.log('neglected Subscriptions',neglectedSubscriptions)
-      if(worstSubscription?.dependentGames.length == 0){
+      if(worstSubscription && worstSubscription?.dependentGames.length == 0){
         // This normally should not happen.
         console.log('subscription neglected recursively')
         neglectWorstDeal()
