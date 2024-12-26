@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { P } from 'flowbite-svelte';
 	import '../app.css';
 	let { children } = $props();
 </script>
-
+<svelte:head>
+    <title>SPC - Streaming Package Comperator</title> 
+</svelte:head>
 
 <style>
 	@font-face {
