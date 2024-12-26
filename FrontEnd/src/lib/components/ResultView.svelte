@@ -136,8 +136,11 @@
       neglectedSubscriptions = [...neglectedSubscriptions, worstSubscription.subscription];
       
       // from all the existing games remove the neglected subscription from the covered_by attribute
+      // (if the game is happening in the time frame of the subscription)
       games.forEach(game => {
-        game.covered_by = game.covered_by.filter(pkg => pkg.id != worstSubscription.subscription.package.id);
+        if(isBetweenDates(new Date(worstSubscription.subscription.start_date), new Date(worstSubscription.subscription.start_date), new Date(game.starts_at))){
+          game.covered_by = game.covered_by.filter(pkg => pkg.id != worstSubscription.subscription.package.id);
+        }
       });
 
 
@@ -147,9 +150,9 @@
       payedPlans = getPayedSubscriptions(results.packages);
       worstSubscription = calculateWorstSubscription(payedPlans);
 
-      //console.log('results.packages', results.packages)
-      //console.log("neglected games", neglectedGames)
-      //console.log('neglected Subscriptions',neglectedSubscriptions)
+      console.log('results.packages', results.packages)
+      console.log("neglected games", neglectedGames)
+      console.log('neglected Subscriptions',neglectedSubscriptions)
       if(worstSubscription && worstSubscription?.dependentGames.length == 0){
         // This normally should not happen.
         console.log('subscription neglected recursively')
