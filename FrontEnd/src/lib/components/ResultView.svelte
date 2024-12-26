@@ -202,6 +202,7 @@
       </table>
   </Popover>
 
+  
   {#if neglectedGames.length > 0}
   <Alert class='underline' color='red' id="neglected-games">{neglectedGames.length} neglected game{neglectedGames.length == 1 ? '' : 's'}</Alert>
     <Popover class="w-64 text-sm font-light w-lg" triggeredBy={`#neglected-games`}>
@@ -213,6 +214,12 @@
         {/each}
         </ul>
   </Popover>
+  {/if}
+  {#if results.live_value >= 1}
+  <p class="text-center text-gray-600"><span class="font-bold">Warning:</span> All non-live games are neglected.</p>
+  {/if}
+  {#if results.highlight_value >= 1}
+  <p class="text-center text-gray-600"><span class="font-bold">Warning:</span> All non-highlight games are neglected.</p>
   {/if}
 
 </div>
