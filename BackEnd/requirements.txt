@@ -3,3 +3,4 @@ flask
 pulp
 datetime
 flask_cors
+gunicorn
