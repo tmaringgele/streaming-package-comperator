@@ -22,10 +22,16 @@ The backend should now be running on `http://127.0.0.1:5000`.
 ## FrontEnd
 0. **Have node and npm installed**
 1. **Rename `example.env` to `.env`**:
-Under Linux:
+
+- Under Linux:
    ```sh
    cd frontend
    mv example.env .env
+   ```
+- Under Windows:
+   ```sh
+   cd frontend
+   ren example.env .env
    ```
 2. **Install dependencies**
    ```sh
