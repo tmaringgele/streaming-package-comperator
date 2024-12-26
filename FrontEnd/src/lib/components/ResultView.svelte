@@ -12,7 +12,7 @@
     export let selectedClubs: string[] = [];
     let start_date = new Date(results.start_date);
     let end_date = new Date(results.end_date);
-    let games = results.games;
+    let games = results.games.filter(game => game.covered_by.length > 0);
     let showAllClubs = false;
 
     let neglectedGames: Game[] = []
@@ -117,24 +117,38 @@
 
     let payedPlans = getPayedSubscriptions(results.packages);
     let worstSubscription = calculateWorstSubscription(payedPlans);
+
+    
     
     
     
     function neglectWorstDeal(){
+      if(!worstSubscription){
+        return
+      }
       
       // add worst deal to neglected games
       neglectedGames = [...neglectedGames, ...worstSubscription.dependentGames];
       neglectedSubscriptions = [...neglectedSubscriptions, worstSubscription.subscription];
       
+      // from all the existing games remove the neglected subscription from the covered_by attribute
+      games.forEach(game => {
+        game.covered_by = game.covered_by.filter(pkg => pkg.id != worstSubscription.subscription.package.id);
+      });
+
+
       games = games.filter(game => !neglectedGames.includes(game));
       results.packages = results.packages.filter(subscription => !neglectedSubscriptions.includes(subscription));
       ({usedPackages, totalCost} = calculateUsedPackages(results.packages));
-      console.log('results.packages', results.packages)
       payedPlans = getPayedSubscriptions(results.packages);
       worstSubscription = calculateWorstSubscription(payedPlans);
-      console.log(neglectedGames)
-      console.log(neglectedSubscriptions)
+
+      //console.log('results.packages', results.packages)
+      //console.log("neglected games", neglectedGames)
+      //console.log('neglected Subscriptions',neglectedSubscriptions)
       if(worstSubscription?.dependentGames.length == 0){
+        // This normally should not happen.
+        console.log('subscription neglected recursively')
         neglectWorstDeal()
       }
     }
