@@ -1,60 +1,51 @@
 <script lang="ts">
+    // Environment variables and API constants
     import { PUBLIC_API_BASE } from '$env/static/public';
+    
+    // Svelte-specific imports
     import { slide } from 'svelte/transition';
-    import { Search, Button } from 'flowbite-svelte';
-    import { Dropdown, DropdownItem, Badge } from 'flowbite-svelte';
-    import { Datepicker, P } from 'flowbite-svelte';
-    import { Range, Label } from 'flowbite-svelte';
-    import {
-        SearchOutline,
-        CalendarEditOutline,
-        ChevronDownOutline,
-        PlusOutline,
-        ExclamationCircleSolid,
-
-		ChevronLeftOutline,
-
-		CloseOutline
-
-
-    } from 'flowbite-svelte-icons';
     import { onMount } from 'svelte';
+
+    // UI components from external libraries
+    import { Search, Button, Dropdown, DropdownItem, Badge, Datepicker, Range, Label, Toast } from 'flowbite-svelte';
+    import { SearchOutline, CalendarEditOutline, ChevronDownOutline, PlusOutline, ExclamationCircleSolid, ChevronLeftOutline, CloseOutline } from 'flowbite-svelte-icons';
     import Typewriter from 'svelte-typewriter';
     import { Slider } from 'bits-ui';
-    import { get } from 'svelte/store';
-    import { Toast } from 'flowbite-svelte';
-    import all_clubs from '$lib/all_clubs.json';
-    import { fetch } from 'whatwg-fetch';
-    import ResultView from '$lib/components/ResultView.svelte';
-    import loadinggif from '$lib/assets/loading.gif';	
+
+    // Custom utility functions and local assets
     import { getRandomColor } from '$lib/functions';
+    import all_clubs from '$lib/all_clubs.json';
+    import ResultView from '$lib/components/ResultView.svelte';
+    import loadinggif from '$lib/assets/loading.gif';
 
-    let liveValue = [10];
-    let highlightValue = [20];
-    let error: string | false = '';
-    let searchQuery = '';
-    let dateRange = { from: null, to: null };
-    let selectedClubs: string[] = [];
-    let clubs = all_clubs;
-    let results = null;
-    let showresults = false
+    // State management
+    let liveValue = [10]; // User input for live match importance
+    let highlightValue = [20]; // User input for highlight importance
+    let error: string | false = ''; // Error message handler
+    let searchQuery = ''; // User input for club search
+    let dateRange = { from: null, to: null }; // Selected date range
+    let selectedClubs: string[] = []; // Clubs chosen by the user
+    let clubs = all_clubs; // Initialize clubs from the imported JSON
+    let results = null; // API response results
+    let showresults = false; // Flag for toggling result view
+    let loading = false; // Loading state
 
-    const apiBase = PUBLIC_API_BASE ? PUBLIC_API_BASE : 'http://127.0.0.1:5000'; //std flask port
+    // API base configuration
+    const apiBase = PUBLIC_API_BASE ? PUBLIC_API_BASE : 'http://127.0.0.1:5000'; // Default Flask port
 
+    // Lifecycle method to check API health
     onMount(() => {
         fetch(apiBase)
             .then(response => response)
             .then(data => {
-                console.log('API health check successful for '+apiBase+':', data);
+                console.log('API health check successful for ' + apiBase + ':', data);
             })
             .catch(error => {
-                console.error('Error making API call for '+apiBase+':', error);
+                console.error('Error making API call for ' + apiBase + ':', error);
             });
     });
 
-
-   
-
+    // Helper function to describe live value selection
     function getLiveValueStatement(liveValue: number[]): string {
         if (liveValue[0] <= 0) {
             return 'Not at all.';
@@ -64,12 +55,12 @@
             return 'I do care.';
         } else if (liveValue[0] < 100) {
             return 'I care A LOT! 🍿';
-        }else {
+        } else {
             return 'MUST. HAVE. 🤯';
         }
     }
 
-    
+    // Display error message with timeout
     function displayError(msg: string, duration: number = 3000) {
         error = msg;
         setTimeout(() => {
@@ -77,6 +68,7 @@
         }, duration);
     }
 
+    // Add a club to the selection
     function addClub(query: string) {
         if (clubs.includes(query) && !selectedClubs.includes(query)) {
             selectedClubs = [...selectedClubs, query];
@@ -89,15 +81,22 @@
         }
     }
 
-    let loading = false;
+    // Remove a club from the selection
+    function removeClub(club: string) {
+        selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
+    }
+
+    // Fetch optimal package based on user inputs
     async function findPackage() {
         if (selectedClubs.length <= 0) {
-        displayError('Please select at least one club.', 3000);
-        return
+            displayError('Please select at least one club.', 3000);
+            return;
         }
+
         showresults = true;
         loading = true;
-        const response = await fetch(apiBase+'/optimizePackages', {
+
+        const response = await fetch(`${apiBase}/optimizePackages`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -112,22 +111,18 @@
                 highlight_value: highlightValue[0]
             })
         });
-        if (response.status != 200) {
+
+        if (response.status !== 200) {
             showresults = false;
             loading = false;
-            results  = await response.json()
+            results = await response.json();
             displayError(results['solver_status'], 5000);
             return;
         }
+
         results = await response.json();
         loading = false;
-        
     }
-
-    function removeClub(club: string) {
-        selectedClubs = selectedClubs.filter(selectedClub => selectedClub !== club);
-    }
-    
 </script>
 
 {#if !showresults}

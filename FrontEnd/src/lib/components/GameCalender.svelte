@@ -1,22 +1,28 @@
 <script lang="ts">
-    import type { Game } from '$lib/types';
-    import { Popover, Button, Badge } from 'flowbite-svelte';
-    import liveicon from '$lib/assets/live-icon.png';
-    import liveiconmini from '$lib/assets/live-icon-mini.png';
-    import highlighticon from '$lib/assets/highlight-icon.png';
-    import { getRandomColor } from '$lib/functions';
+    // Import required types and components
+    import type { Game } from '$lib/types'; // Type definition for Game objects
+    import { Popover, Button, Badge } from 'flowbite-svelte'; // UI components
+    import liveicon from '$lib/assets/live-icon.png'; // Icon for live games
+    import liveiconmini from '$lib/assets/live-icon-mini.png'; // Mini icon for live games
+    import highlighticon from '$lib/assets/highlight-icon.png'; // Icon for game highlights
+    import { getRandomColor } from '$lib/functions'; // Utility for random colors
 
-    export let start_date: Date;
-    export let end_date: Date;
-    export let games: Game[];
+    // Props received from parent component
+    export let start_date: Date; // Start date of the range
+    export let end_date: Date; // End date of the range
+    export let games: Game[]; // List of games to display
 
-    let years: number[] = [];
-    let months: string[] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    let gamesByYearMonth: { [key: string]: Game[] } = {};
+    // Local state variables
+    let years: number[] = []; // List of years in the selected range
+    const months: string[] = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ]; // Names of months for display
+    let gamesByYearMonth: { [key: string]: Game[] } = {}; // Games organized by year and month
 
-
-
+    // Reactive statement to calculate years and organize games by year and month
     $: if (start_date && end_date) {
+        // Calculate years within the start and end dates
         let startYear = start_date.getFullYear();
         let endYear = end_date.getFullYear();
         years = [];
@@ -24,17 +30,19 @@
             years.push(year);
         }
 
-        gamesByYearMonth = {};
+        // Organize games by "year-month" keys
+        gamesByYearMonth = {}; // Reset gamesByYearMonth
         games.forEach(game => {
-            let gameDate = new Date(game.starts_at);
-            let yearMonth = `${gameDate.getFullYear()}-${gameDate.getMonth()}`;
+            let gameDate = new Date(game.starts_at); // Parse the game date
+            let yearMonth = `${gameDate.getFullYear()}-${gameDate.getMonth()}`; // Create a "year-month" key
             if (!gamesByYearMonth[yearMonth]) {
-                gamesByYearMonth[yearMonth] = [];
+                gamesByYearMonth[yearMonth] = []; // Initialize array if key doesn't exist
             }
-            gamesByYearMonth[yearMonth].push(game);
+            gamesByYearMonth[yearMonth].push(game); // Add game to the corresponding year-month bucket
         });
     }
 </script>
+
 
 {#if start_date && end_date}
     <table class="table-auto w-full border-collapse">

@@ -1,166 +1,169 @@
 <script lang="ts">
+    // Import necessary types
     import type { OptimizationResponse, Subscription, Game } from '$lib/types';
-    import { Badge, Alert, AccordionItem, Accordion  } from 'flowbite-svelte';
+
+    // UI components and utilities
+    import { Badge, Alert, AccordionItem, Accordion } from 'flowbite-svelte';
     import GameCalender from '$lib/components/GameCalender.svelte';
     import { Section, Schedule, ScheduleItem } from "flowbite-svelte-blocks";
     import { Timeline, TimelineItem, Button, Popover } from 'flowbite-svelte';
-  import { ArrowRightOutline, InfoCircleSolid } from 'flowbite-svelte-icons';
-  import { getRandomColor } from '$lib/functions';
-	import { onMount } from 'svelte';
+    import { ArrowRightOutline, InfoCircleSolid } from 'flowbite-svelte-icons';
+    import { getRandomColor } from '$lib/functions';
 
+    // Svelte lifecycle method
+    import { onMount } from 'svelte';
+
+    // Props passed to the component
     export let results: OptimizationResponse;
     export let selectedClubs: string[] = [];
+
+    // Initialize start and end dates
     let start_date = new Date(results.start_date);
     let end_date = new Date(results.end_date);
+
+    // Filter games that are covered by at least one package
     let games = results.games.filter(game => game.covered_by.length > 0);
+
+    // State variables for UI interactions
     let showAllClubs = false;
+    let neglectedGames: Game[] = [];
+    let neglectedSubscriptions: Subscription[] = [];
 
-    let neglectedGames: Game[] = []
-    let neglectedSubscriptions: Subscription[] = []
-
-  function isBetweenDates(startDate, endDate, date) {
-  return date.getTime() >= startDate.getTime() && date.getTime() <= endDate.getTime();
-  }
-    function calculateDependentGames(subscription: Subscription, games) {
-      let start_date_subscription = new Date(subscription.start_date);
-      let end_date_subscription = new Date(start_date_subscription);
-      end_date_subscription.setDate(end_date_subscription.getDate() + (subscription.yearly == 1 ? 365 : 30));
-        let dependentGames = games.filter(game =>  
-            game.covered_by.filter(pkg => pkg.id != subscription.package.id).length == 0
-            &&
-            isBetweenDates(start_date_subscription, end_date_subscription, new Date(game.starts_at))//if game is in scope of subscription
-            
-        ); // a game is dependent from a package, if there is no other package covering it
-        
-        return dependentGames;
+    // Utility function to check if a date is within a range
+    function isBetweenDates(startDate: Date, endDate: Date, date: Date): boolean {
+        return date.getTime() >= startDate.getTime() && date.getTime() <= endDate.getTime();
     }
 
-    // get subscription with the highest price/dependentGames ratio
+    // @TODO: Consider leap years
+    // Utility function to check get the end date of a subscription
+    function getEndDate(subscription: Subscription): Date {
+        let end_date_subscription = new Date(subscription.start_date);
+        end_date_subscription.setDate(end_date_subscription.getDate() + (subscription.yearly ? 365 : 30));
+        return end_date_subscription;
+    }
+
+    // Calculate games dependent on a subscription
+    function calculateDependentGames(subscription: Subscription, games: Game[]): Game[] {
+        let start_date_subscription = new Date(subscription.start_date);
+        return games.filter(game =>
+            game.covered_by.every(pkg => pkg.id === subscription.package.id) &&
+            isBetweenDates(start_date_subscription, getEndDate(subscription), new Date(game.starts_at))
+        );
+    }
+
+    // Determine the subscription with the highest price-to-dependent-games ratio
     function calculateWorstSubscription(payedPlans: Subscription[]) {
-      if(payedPlans.length <= 0 || usedPackages.length <= 1){
-        return null
-      }
-
-      if(payedPlans.length <= 1 && (results.live_value >= 1 || results.highlight_value >= 1)){
-        return null
-      }
-
-        let worstSubscription: {
-            subscription: Subscription;
-            dependentGames: Game[];
-
-        } = {
-            subscription: payedPlans[0],
-            dependentGames: calculateDependentGames(payedPlans[0], games)
+      console.log('payedPlans:', payedPlans);
+        if (payedPlans.length === 0 || usedPackages.length <= 1) {
+            return null;
         }
 
+        if (payedPlans.length === 1 && (results.live_value >= 1 || results.highlight_value >= 1)) {
+            return null;
+        }
+
+        let worstSubscription = {
+            subscription: payedPlans[0],
+            dependentGames: calculateDependentGames(payedPlans[0], games)
+        };
+
         payedPlans.forEach(subscription => {
-          let dependentGames = calculateDependentGames(subscription, games);
-            if ((subscription.price / dependentGames.length) > ( worstSubscription.subscription.price / worstSubscription.dependentGames.length)) {
+            let dependentGames = calculateDependentGames(subscription, games);
+            if ((subscription.price / dependentGames.length) > (worstSubscription.subscription.price / worstSubscription.dependentGames.length)) {
                 worstSubscription = {
                     subscription,
                     dependentGames
-                }
+                };
             }
         });
+
         return worstSubscription;
     }
 
-    // returns a duplicate-free list of used packages with total price
+    // Calculate unique packages used and their total cost
     function calculateUsedPackages(subscriptions: Subscription[]) {
         let usedPackages: {
-          amount: number;
-          yearly: boolean;
-          pkg: {
-            id: number;
-            name: string;
-          };
-          price: number;
-        } = [];
+            amount: number;
+            yearly: boolean;
+            pkg: { id: number; name: string; };
+            price: number;
+        }[] = [];
         let totalCost = 0;
+
         subscriptions.forEach(subscription => {
-          let existingSubscription = usedPackages.find(sub => sub.pkg.id == subscription.package.id);
-          if (existingSubscription) {
-            existingSubscription.amount++;
+            let existingSubscription = usedPackages.find(sub => sub.pkg.id === subscription.package.id);
+            if (existingSubscription) {
+                existingSubscription.amount++;
+            } else {
+                usedPackages.push({
+                    amount: 1,
+                    yearly: !!subscription.yearly,
+                    pkg: { id: subscription.package.id, name: subscription.package.name },
+                    price: subscription.price
+                });
+            }
             totalCost += subscription.price;
-          } else {
-            usedPackages.push({
-              amount: 1,
-              yearly: subscription.yearly == 1,
-              pkg: {
-                id: subscription.package.id,
-                name: subscription.package.name
-              },
-              price: subscription.price
-            });
-            totalCost += subscription.price;
-          }
         });
 
-        // sort such that free tv is at the bottom
+        // Sort packages with free TV options at the bottom
         usedPackages.sort((a, b) => {
-          if (a.price == 0) return 1;
-          if (b.price == 0) return -1;
-          return a.price - b.price;
+            if (a.price === 0) return 1;
+            if (b.price === 0) return -1;
+            return a.price - b.price;
         });
-        return {usedPackages, totalCost};
-        
-    }
-    let usedPackages
-    let totalCost
-    ({usedPackages, totalCost} = calculateUsedPackages(results.packages));
 
-    let numberOfShownActionPlans = 3
-    function getPayedSubscriptions(subscriptions: Subscription[]) {
-      
-        return subscriptions.filter(subscription => 
-            subscription.price > 0
-        )
-      
-      
+        return { usedPackages, totalCost };
     }
 
+    // Extract used packages and total cost from results
+    let usedPackages, totalCost;
+    ({ usedPackages, totalCost } = calculateUsedPackages(results.packages));
+
+    // Show a limited number of action plans initially
+    let numberOfShownActionPlans = 3;
+
+    // Filter subscriptions with non-zero price
+    function getPayedSubscriptions(subscriptions: Subscription[]): Subscription[] {
+        return subscriptions.filter(subscription => subscription.price > 0);
+    }
+
+    // Initialize subscriptions and calculate the worst deal
     let payedPlans = getPayedSubscriptions(results.packages);
     let worstSubscription = calculateWorstSubscription(payedPlans);
 
-    
-    
-    
-    
-    function neglectWorstDeal(){
-      if(!worstSubscription){
-        return
-      }
-      
-      // add worst deal to neglected games
-      neglectedGames = [...neglectedGames, ...worstSubscription.dependentGames];
-      neglectedSubscriptions = [...neglectedSubscriptions, worstSubscription.subscription];
-      
-      // from all the existing games remove the neglected subscription from the covered_by attribute
-      // (if the game is happening in the time frame of the subscription)
-      games.forEach(game => {
-        if(isBetweenDates(new Date(worstSubscription.subscription.start_date), new Date(worstSubscription.subscription.start_date), new Date(game.starts_at))){
-          game.covered_by = game.covered_by.filter(pkg => pkg.id != worstSubscription.subscription.package.id);
+    // Handle neglecting the worst subscription deal
+    function neglectWorstDeal() {
+        if (!worstSubscription) return;
+
+        // Add worst deal's dependent games and subscription to neglected lists
+        neglectedGames = [...neglectedGames, ...worstSubscription.dependentGames];
+        neglectedSubscriptions = [...neglectedSubscriptions, worstSubscription.subscription];
+
+        // Update covered_by field for games within the subscription's timeframe
+        games.forEach(game => {
+            if (isBetweenDates(new Date(worstSubscription.subscription.start_date), getEndDate(worstSubscription.subscription), new Date(game.starts_at))) { 
+              game.covered_by = game.covered_by.filter(pkg => pkg.id !== worstSubscription.subscription.package.id);
+            }
+        });
+
+        // Remove neglected games and subscriptions from active lists
+        games = games.filter(game => !neglectedGames.includes(game));
+        results.packages = results.packages.filter(subscription => !neglectedSubscriptions.includes(subscription));
+        ({ usedPackages, totalCost } = calculateUsedPackages(results.packages));
+        payedPlans = getPayedSubscriptions(results.packages);
+        worstSubscription = calculateWorstSubscription(payedPlans);
+
+        // // Log updates for debugging
+        // console.log('Updated results.packages:', results.packages);
+        // console.log("Neglected games:", neglectedGames);
+        // console.log("Neglected subscriptions:", neglectedSubscriptions);
+
+        // Handle edge case where recursion is needed
+        if (worstSubscription && worstSubscription.dependentGames.length === 0) {
+            console.warn('Recursive neglect detected');
+            neglectWorstDeal();
         }
-      });
-
-
-      games = games.filter(game => !neglectedGames.includes(game));
-      results.packages = results.packages.filter(subscription => !neglectedSubscriptions.includes(subscription));
-      ({usedPackages, totalCost} = calculateUsedPackages(results.packages));
-      payedPlans = getPayedSubscriptions(results.packages);
-      worstSubscription = calculateWorstSubscription(payedPlans);
-
-      console.log('results.packages', results.packages)
-      console.log("neglected games", neglectedGames)
-      console.log('neglected Subscriptions',neglectedSubscriptions)
-      if(worstSubscription && worstSubscription?.dependentGames.length == 0){
-        // This normally should not happen.
-        console.log('subscription neglected recursively')
-        neglectWorstDeal()
-      }
     }
-
 </script>
 
 <div class="flex flex-col gap-1 items-center mt-5">
