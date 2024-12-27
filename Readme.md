@@ -9,7 +9,7 @@ At the core of this application lies a mathematical model known as a Mixed Integ
 
 This mathematical model is solved using the PuLP solver in Python. 🐍
 
-📽️ Watch this video (TODO) where I showcase the application and delve deeper into the implementation.
+📽️ Watch this [video](https://youtu.be/GjfUVjEsDuM) where I showcase the application and delve deeper into the implementation and future improvements.
 
 📚 For those who want to dive deeper into the mathematical details, see the `explanation_for_nerds.ipynb` file, which provides a detailed explanation of the underlying math.  
 
