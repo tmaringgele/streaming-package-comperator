@@ -23,11 +23,14 @@ This mathematical model is solved using the PuLP solver in Python. 🐍
   * 📂 Currently, each query accesses the CSV files as provided in the problem statement. Accessing the data through a merged CSV file or a database could significantly improve speed.  
   * 🔄 The backend processes the dataframe in multiple loops. Consolidating operations into fewer loops could enhance performance.  
   * ✂️ The pruning logic (removal of the worst deals) is currently implemented on the frontend. Moving this to the backend could further optimize performance.
+  * ⏰ Lower time granularity for large queries. Adjusting the timedelta to one week or month instead of daily intervals could dramatically reduce computational complexity.
+  * ⚡ Use a more advanced solver like [Gurobi](https://www.gurobi.com/) or [CPLEX](https://www.ibm.com/analytics/cplex-optimizer) for faster and more efficient performance, especially for larger queries or more complex constraints.
+
 
 **Theory/Math** 📐:  
   * ❓ After pruning, there is no guarantee that the model remains optimal. Implementing methods from [Sensitivity Analysis](https://ocw.ehu.eus/pluginfile.php/40934/mod_resource/content/1/4_Sensitivity.pdf) could help verify if re-solving is necessary.  
   * 📦 There are alternative ways to model this use case and related scenarios. For example, if users set a maximum monthly or yearly budget, it could be modeled as a [Cutting Stock Problem](https://en.wikipedia.org/wiki/Cutting_stock_problem).  
-  * ⚡ Use a more advanced solver like [Gurobi](https://www.gurobi.com/) or [CPLEX](https://www.ibm.com/analytics/cplex-optimizer) for faster and more efficient performance, especially for larger queries or more complex constraints.
+ 
 
 ## 🛠️ Local Setup
 
